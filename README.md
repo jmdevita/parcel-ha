@@ -57,28 +57,16 @@ You can create automations in Home Assistant to notify you of shipment updates. 
 
 ```yaml
 automation:
-
   - alias: Notify on New Parcel Shipment Event
-
     trigger:
-
       platform: state
-
       entity_id: sensor.recent_parcel_shipment
-
     action:
-
       service: notify.notify
-
       data:
-
         title: "New Parcel Shipment Event"
-
         message: >
-
-          Shipment {{ state_attr('sensor.recent_parcel_shipment', 'full_description') }} has a new event:
-
-          {{ state_attr('sensor.recent_parcel_shipment', 'event_date') }} - {{ state_attr('sensor.recent_parcel_shipment', 'event_location') }} - {{ states('sensor.recent_parcel_shipment') }}
+          Shipment {{ state_attr('sensor.recent_parcel_shipment', 'full_description') }} has a new event: {{ state_attr('sensor.recent_parcel_shipment', 'event_date') }} - {{ state_attr('sensor.recent_parcel_shipment', 'event_location') }} - {{ states('sensor.recent_parcel_shipment') }}
 ```
 
 Development
