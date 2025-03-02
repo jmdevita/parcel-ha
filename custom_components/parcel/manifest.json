@@ -1,8 +1,8 @@
 {
     "domain": "parcel",
     "name": "Parcel",
-    "documentation": "https://github.com/_______",
-    "issue_tracker": "https://github.com/_______",
+    "documentation": "https://github.com/jmdevita/parcel-ha/blob/main/README.md",
+    "issue_tracker": "https://github.com/jmdevita/parcel-ha/issues",
     "codeowners": ["@jmdevita"],
     "requirements": ["requests==2.32.3"],
     "integration_type": "hub",

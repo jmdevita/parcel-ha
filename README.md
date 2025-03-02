@@ -86,7 +86,7 @@ pytest tests
 Contributing
 ------------
 
-Contributions are welcome! Please open an issue or submit a pull request on the [GitHub repository](/).
+Contributions are welcome! Please open an issue or submit a pull request on the [GitHub repository](https://github.com/jmdevita/parcel-ha/pulls).
 
 License
 -------
@@ -96,7 +96,7 @@ This project is licensed under the GNU General Public License v3.0. See the [LI
 Support
 -------
 
-If you encounter any issues or have questions, please open an issue on the [GitHub repository](/).
+If you encounter any issues or have questions, please open an issue on the [GitHub repository](https://github.com/jmdevita/parcel-ha/issues).
 
 Acknowledgements
 ----------------
