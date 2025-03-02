@@ -1,0 +1,12 @@
+{
+    "domain": "parcel",
+    "name": "Parcel",
+    "documentation": "https://github.com/_______",
+    "issue_tracker": "https://github.com/_______",
+    "codeowners": ["@jmdevita"],
+    "requirements": ["requests==2.32.3"],
+    "integration_type": "hub",
+    "iot-class": "cloud_polling",
+    "config_flow": true,
+    "version": "0.0.1"
+}
