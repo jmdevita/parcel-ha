@@ -1,7 +1,7 @@
-Parcel Integration for Home Assistant
+Parcel App Integration for Home Assistant
 =====================================
 
-This is an unofficial integration for Home Assistant that allows you to track your parcels using the Parcel REST API. This integration fetches the latest shipment data and displays it as a sensor in Home Assistant. This requires a pro account, which costs $5/year.
+This is an integration for Home Assistant that allows you to track your parcels using the Parcel REST API. This integration fetches the latest shipment data and displays it as a sensor in Home Assistant. This requires a pro account, which costs $5/year.
 
 Features
 --------
@@ -105,4 +105,4 @@ This integration uses the Parcel REST API. Special thanks to the developer of th
 
 * * * * *
 
-**Note:** This integration is unofficial and not affiliated with the Parcel API developers. Use it at your own risk.
+**Note:** This integration is unofficial and not affiliated with the Parcel API developers.
