@@ -1,5 +1,5 @@
 {
-    "domain": "parcel-ha",
+    "domain": "parcelapp",
     "name": "Parcel App",
     "documentation": "https://github.com/jmdevita/parcel-ha/blob/main/README.md",
     "issue_tracker": "https://github.com/jmdevita/parcel-ha/issues",
@@ -8,5 +8,5 @@
     "integration_type": "hub",
     "iot-class": "cloud_polling",
     "config_flow": true,
-    "version": "0.0.2"
+    "version": "0.0.3"
 }
