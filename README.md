@@ -77,12 +77,6 @@ Development
 -   Home Assistant
 -   HACS
 
-### Running Tests
-
-To run the tests for this integration, use the following command:
-```zsh
-pytest tests
-```
 Contributing
 ------------
 
