@@ -1,12 +1,12 @@
 {
     "domain": "parcelapp",
     "name": "Parcel App",
-    "documentation": "https://github.com/jmdevita/parcel-ha/blob/main/README.md",
-    "issue_tracker": "https://github.com/jmdevita/parcel-ha/issues",
     "codeowners": ["@jmdevita"],
-    "iot_class": "cloud_polling",
-    "requirements": ["requests>=2.32.3"],
-    "integration_type": "hub",
     "config_flow": true,
-    "version": "0.0.5"
+    "documentation": "https://github.com/jmdevita/parcel-ha/blob/main/README.md",
+    "integration_type": "hub",
+    "iot_class": "cloud_polling",
+    "issue_tracker": "https://github.com/jmdevita/parcel-ha/issues",
+    "requirements": ["requests>=2.32.3"],
+    "version": "0.0.5" 
 }
