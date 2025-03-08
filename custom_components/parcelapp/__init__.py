@@ -6,13 +6,15 @@ from typing import Any
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import device_registry as dr, config_validation as cv
+
 
 from .const import DOMAIN
 from .coordinator import ParcelConfigEntry, ParcelUpdateCoordinator
 
 PLATFORMS = [Platform.SENSOR]
 _LOGGER = logging.getLogger(__name__)
-
+CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
 
 async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
     """Set up the integration."""

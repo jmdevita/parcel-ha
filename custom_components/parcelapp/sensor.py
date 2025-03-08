@@ -4,15 +4,17 @@ from datetime import timedelta
 import logging
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers import config_validation as cv, device_registry as dr
 
-from .const import DOMAIN, UPDATE_INTERVAL_SECONDS
+from .const import DOMAIN
 from .coordinator import ParcelConfigEntry, ParcelUpdateCoordinator
 
+PLATFORMS = [Platform.SENSOR]
 _LOGGER = logging.getLogger(__name__)
-SCAN_INTERVAL = timedelta(seconds=UPDATE_INTERVAL_SECONDS)
+CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
+
 
 
 async def async_setup_entry(

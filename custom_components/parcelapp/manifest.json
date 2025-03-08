@@ -4,9 +4,9 @@
     "documentation": "https://github.com/jmdevita/parcel-ha/blob/main/README.md",
     "issue_tracker": "https://github.com/jmdevita/parcel-ha/issues",
     "codeowners": ["@jmdevita"],
-    "requirements": ["requests==2.32.3"],
+    "iot_class": "cloud_polling",
+    "requirements": ["requests>=2.32.3"],
     "integration_type": "hub",
-    "iot-class": "cloud_polling",
     "config_flow": true,
-    "version": "0.0.4"
+    "version": "0.0.5"
 }
