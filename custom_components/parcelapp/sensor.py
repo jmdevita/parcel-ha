@@ -78,11 +78,15 @@ class RecentShipment(SensorEntity):
                 description = data[0]["description"]
             except KeyError:
                 description = "Parcel"
+            try:
+                date_expected = data[0]["date_expected"]
+            except KeyError:
+                date_expected = "Unknown"
 
             self._hass_custom_attributes = {
                 "full_description": description,
                 "tracking_number": data[0]["tracking_number"],
-                "date_expected": data[0]["date_expected"],
+                "date_expected": date_expected,
                 "status_code": data[0]["status_code"],
                 "carrier_code": data[0]["carrier_code"],
                 "event_date": event_date,
