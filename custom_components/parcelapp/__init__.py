@@ -5,9 +5,7 @@ from typing import Any
 
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers import device_registry as dr, config_validation as cv
-
+from homeassistant.helpers import config_validation as cv, device_registry as dr
 
 from .const import DOMAIN
 from .coordinator import ParcelConfigEntry, ParcelUpdateCoordinator
