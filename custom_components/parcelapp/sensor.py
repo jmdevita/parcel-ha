@@ -60,19 +60,24 @@ class RecentShipment(SensorEntity):
             self._attr_name = data[0]["description"]
             if len(self._attr_name) > 20:
                 self._attr_name = self._attr_name[:20] + "..."
-            self._attr_state = data[0]["events"][0]["event"]
+            try:
+                self._attr_state = data[0]["events"][0]["event"]
+                try:
+                    event_date = data[0]["events"][0]["date"]
+                except KeyError:
+                    event_date = "Unknown"
+                try:
+                    event_location = data[0]["events"][0]["location"]
+                except KeyError:
+                    event_location = "Unknown"
+            except KeyError:
+                self._attr_state = "Unknown"
+                event_date = "Unknown"
+                event_location = "Unknown"
             try:
                 description = data[0]["description"]
             except KeyError:
                 description = "Parcel"
-            try:
-                event_date = data[0]["events"][0]["date"]
-            except KeyError:
-                event_date = "Unknown"
-            try:
-                event_location = data[0]["events"][0]["location"]
-            except KeyError:
-                event_location = "Unknown"
 
             self._hass_custom_attributes = {
                 "full_description": description,
