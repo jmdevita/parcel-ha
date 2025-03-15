@@ -48,6 +48,65 @@ Once the integration is set up, it will create a sensor entity named sensor.rec
 -   `event_date`: Date of the shipment event
 -   `event_location`: Location of the shipment event
 
+From v1.0.0 a second sensor entity is added, called sensor.active_parcel_shipment. It's intended to be used to provide information about when the next shipment is due, and how many shipments are currently actively being tracked. It has the following attributes:
+
+### Sensor Attributes
+-   `Number_of_active_parcels`: The number of active parcels being tracked
+-   `parcels_arriving_today`: The number of parcels with an ETA of the current date
+-   `days_until_next_delivery`: The number of days until the next delivery, though it will return text descriptions if it isn't relevant.
+
+## Custom Button Card
+
+If you are familiar with custom button card, one way to use the active_parcel_shipment sensor is with the following button card template:
+
+```
+type: custom:button-card
+entity: sensor.active_parcel_shipment
+name: Parcels
+show_name: true
+show_icon: true
+show_state: true
+styles:
+  grid:
+    - grid-template-areas: '"i n" "i s"'
+    - grid-template-columns: auto 1fr
+    - grid-template-rows: 12px 12px
+  card:
+    - padding: 22px 22px 22px 22px
+    - height: 150px
+    - background: rgba(10,10,10,0.85)
+  name:
+    - justify-self: end
+    - font-size: 18px
+    - font-weight: 500
+    - color: '#d2ae71'
+  state:
+    - justify-self: end
+    - font-size: 14px
+    - opacity: '0.7'
+    - padding-top: 12px
+    - padding-left: 0px
+  img_cell:
+    - justify-content: start
+    - position: absolute
+    - width: 120px
+    - height: 120px
+    - left: 0
+    - bottom: 0
+    - margin: 0 0 -20px -20px
+    - background: '#d2ae71'
+    - border-radius: 500px
+  icon:
+    - position: relative
+    - width: 75px
+    - color: black
+    - opacity: "0.5"
+```
+
+<img src="parcel_button_card.png" alt="Example Card" width="250"/>
+
+You may want to modify the dimensions, opacity, etc to suit your tastes.
+
 Development
 -----------
 
