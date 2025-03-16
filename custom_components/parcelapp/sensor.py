@@ -26,7 +26,7 @@ async def async_setup_entry(
     """Set up the Parcel sensor platform from a config entry."""
     coordinator = hass.data[DOMAIN]["coordinator"]
     async_add_entities([RecentShipment(coordinator),
-                        ActiveShipment(coordinator)])
+                        ActiveShipment(coordinator)], update_before_add=True)
 
 
 class RecentShipment(SensorEntity):
