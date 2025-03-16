@@ -250,6 +250,11 @@ class ActiveShipment(SensorEntity):
                     verbose = "in 1 day"
                 else:
                     verbose = "in " + str(days_until_next_delivery) + " days"
+            elif days_until_next_delivery == -2:
+                if len(active_shipments) == 1:
+                    verbose =  "1 active parcel"
+                else:
+                    verbose = str(len(active_shipments)) + " active parcels"
             else:
                 verbose = "No parcels for now.."
             # Catch the error codes before returning the days_until_delivery
