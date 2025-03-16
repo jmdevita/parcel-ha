@@ -227,7 +227,7 @@ class ActiveShipment(SensorEntity):
             if days_until_next_delivery == -3:
                 icon = "mdi:close-circle"
             elif days_until_next_delivery == -2:
-                icon = "help-circle"
+                icon = "mdi:help-circle"
             elif days_until_next_delivery == -1:
                 icon = "mdi:shopping"
             elif days_until_next_delivery == 0:
