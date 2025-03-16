@@ -80,15 +80,19 @@ class RecentShipment(SensorEntity):
             except KeyError:
                 description = "Parcel"
 
-            self._hass_custom_attributes = {
+            attributes = {
                 "full_description": description,
                 "tracking_number": data[0]["tracking_number"],
                 "status_code": data[0]["status_code"],
-                "carrier_code": data[0]["carrier_code"],
-                "carrier_code_verbose": CARRIER_CODES[data[0]["carrier_code"]],
+                "carrier_code": data[0]["carrier_code"],                
                 "event_date": event_date,
                 "event_location": event_location,
             }
+            try:
+                attributes["carrier_code_verbose"] = CARRIER_CODES[data[0]["carrier_code"]]
+            except KeyError:
+                attributes["carrier_code_verbose"] = "unknown"
+            self._hass_custom_attributes = attributes
 
 
 class ActiveShipment(SensorEntity):
