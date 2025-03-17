@@ -208,7 +208,7 @@ class ActiveShipment(SensorEntity):
                     else:            
                         # Build a list of active shipments that have a date_expected key which is today or in the future
                         # Assuming the date_expected_end is always the same date, but it could be a multi-date window
-                        if (today.date() <= new_shipment.date_expected.date()):
+                        if (today <= new_shipment.date_expected.date()):
                             active_shipments.append(new_shipment)
                             traceable_active_shipments.append(new_shipment)            
             # catch if there are no active shipments
@@ -223,7 +223,7 @@ class ActiveShipment(SensorEntity):
                     # sort the traceable active shipments list so the next shipment is first
                     traceable_active_shipments.sort(key=lambda x: x.date_expected)
                     next_delivery_date = traceable_active_shipments[0].date_expected
-                    days_until_next_delivery = (next_delivery_date.date() - today.date()).days
+                    days_until_next_delivery = (next_delivery_date.date() - today).days
                 except ValueError:
                     # Treat as unknown but something IS coming
                     days_until_next_delivery = -3
