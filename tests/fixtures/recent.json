@@ -1,0 +1,55 @@
+{
+    "success": true,
+    "deliveries": [
+      {
+        "carrier_code": "fedex",
+        "description": "Wireless Mouse Set",
+        "status_code": 3,
+        "tracking_number": "8217400125612976",
+        "extra_information": "FedEx SmartPost",
+        "date_expected": "2023-03-05T00:00:00Z",
+        "events": [
+          {
+            "event": "Delivered to Address",
+            "date": "Saturday, March 4, 2023 11:45 AM",
+            "location": "Austin, TX, USA"
+          },
+          {
+            "event": "Out for Delivery Attempt",
+            "date": "Friday, March 3, 2023 02:15 PM",
+            "location": "Round Rock, TX, USA"
+          },
+          {
+            "event": "Departure Scan",
+            "date": "Friday, March 3, 2023 12:00 PM",
+            "location": "Harrisburg, PA, USA"
+          },
+          {
+            "event": "Package Shipped",
+            "date": "Wednesday, February 29, 2023 7:45 AM",
+            "location": "Philadelphia, PA, USA"
+          }
+        ]
+      },
+      {
+        "carrier_code": "usps",
+        "description": "Textbooks",
+        "status_code": 1,
+        "tracking_number": "940551120376810490678707631513",
+        "date_expected": "2023-03-07T09:00:00-05:00",
+        "events": [
+          {
+            "event": "Postmark Mailpiece by Carrier",
+            "date": "February 14, 2025 04:27 PM EST",
+            "location": "New York, NY, USA"
+          },
+          {
+            "event": "Arrived at Sorting Facility",
+            "date": "February 15, 2025 3:05 PM EST",
+            "location": "Wilmington, DE, USA"
+          }
+        ]
+      }
+    ]
+  }
+  

@@ -36,7 +36,6 @@ class ParcelUpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from the API and return the top value."""
-        # print("Update")
         API_URL = f"{PARCEL_URL}?filter_mode=recent"
         try:
             headers = {"api-key": self.api_key, "Content-Type": "application/json"}
