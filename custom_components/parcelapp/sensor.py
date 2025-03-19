@@ -58,9 +58,6 @@ class RecentShipment(SensorEntity):
         data = self.coordinator.data
 
         if data:
-            self._attr_name = data[0]["description"]
-            if len(self._attr_name) > 20:
-                self._attr_name = self._attr_name[:20] + "..."
             try:
                 self._attr_state = data[0]["events"][0]["event"]
                 try:
