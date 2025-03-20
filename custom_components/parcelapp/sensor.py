@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, UPDATE_INTERVAL_SECONDS, RETURN_CODES, CARRIER_CODES, DELIVERY_STATUS_CODES, Shipment
+from .const import DOMAIN, UPDATE_INTERVAL_SECONDS, RETURN_CODES, DELIVERY_STATUS_CODES, Shipment
 from .coordinator import ParcelConfigEntry, ParcelUpdateCoordinator
 
 PLATFORMS = [Platform.SENSOR]
@@ -36,9 +36,9 @@ class RecentShipment(SensorEntity):
         """Initialize the sensor."""
         self.coordinator = coordinator
         self._hass_custom_attributes = {}
-        self._attr_name = "Recent Parcel Shipment"
-        self._attr_unique_id = "Recent_Parcel_Shipment"
-        self._globalid = "Recent_Parcel_Shipment"
+        self._attr_name = "Parcel Recent Shipment"
+        self._attr_unique_id = "Parcel_Recent_Shipment"
+        self._globalid = "Parcel_Recent_Shipment"
         self._attr_icon = "mdi:package"
         self._attr_state = None
 
@@ -55,12 +55,11 @@ class RecentShipment(SensorEntity):
     async def async_update(self) -> None:
         """Fetch the latest data from the coordinator."""
         await self.coordinator.async_request_refresh()
-        data = self.coordinator.data
+        parcel_api_data = self.coordinator.data
 
-        if data:
-            self._attr_name = data[0]["description"]
-            if len(self._attr_name) > 20:
-                self._attr_name = self._attr_name[:20] + "..."
+        if parcel_api_data:
+            data = parcel_api_data["deliveries"]
+            carrier_codes = parcel_api_data["carrier_codes"]
             try:
                 self._attr_state = data[0]["events"][0]["event"]
                 try:
@@ -94,7 +93,7 @@ class RecentShipment(SensorEntity):
                 "event_location": event_location,
             }
             try:
-                attributes["carrier_code_verbose"] = CARRIER_CODES[data[0]["carrier_code"]]
+                attributes["carrier_code_verbose"] = carrier_codes[data[0]["carrier_code"]]
             except KeyError:
                 attributes["carrier_code_verbose"] = "unknown"
             self._hass_custom_attributes = attributes
@@ -107,9 +106,9 @@ class ActiveShipment(SensorEntity):
         """Initialize the sensor."""
         self.coordinator = coordinator
         self._hass_custom_attributes = {}
-        self._attr_name = "Active Parcel Shipment"
-        self._attr_unique_id = "Active_Parcel_Shipment"
-        self._globalid = "Active_Parcel_Shipment"
+        self._attr_name = "Parcel Active Shipment"
+        self._attr_unique_id = "Parcel_Active_Shipment"
+        self._globalid = "Parcel_Active_Shipment"
         self._attr_icon = "mdi:package"
         self._attr_state = None
 
@@ -126,13 +125,14 @@ class ActiveShipment(SensorEntity):
     async def async_update(self) -> None:
         """Fetch the latest data from the coordinator."""
         await self.coordinator.async_request_refresh()
-        data = self.coordinator.data
+        parcel_api_data = self.coordinator.data
         shipments = []
         active_shipments = []
         traceable_active_shipments = []
-        today = date.today()
-        
-        if data:            
+        today = date.today()        
+        if parcel_api_data:
+            data = parcel_api_data["deliveries"]
+            carrier_codes = parcel_api_data["carrier_codes"]
             for item in data:
                 # These are the mandatory properties
                 carrier_code = item["carrier_code"]
@@ -206,13 +206,11 @@ class ActiveShipment(SensorEntity):
                     )
                 shipments.append(new_shipment)
                 # Build the active shipments list, but remove any delivered parcels and any active parcles with no date_expected key
-                # Should 'active' parcels with no date_expected key be included just to indicate there's an active parcel? e.g. placeholder deliveries
                 if (new_shipment.status_code != 0):
                     if (new_shipment.date_expected is None):
                         active_shipments.append(new_shipment)
                     else:            
                         # Build a list of active shipments that have a date_expected key which is today or in the future
-                        # Assuming the date_expected_end is always the same date, but it could be a multi-date window
                         if (today <= new_shipment.date_expected.date()):
                             active_shipments.append(new_shipment)
                             traceable_active_shipments.append(new_shipment)            
@@ -232,6 +230,10 @@ class ActiveShipment(SensorEntity):
                 except ValueError:
                     # Treat as unknown but something IS coming
                     days_until_next_delivery = -3
+                try:
+                    next_delivery_carrier = carrier_codes[traceable_active_shipments[0].carrier_code]
+                except KeyError:
+                    next_delivery_carrier = "Unknown"
             # Set the icon based upon the days until next delivery
             if days_until_next_delivery == -3:
                 icon = "mdi:close-circle"
@@ -274,6 +276,6 @@ class ActiveShipment(SensorEntity):
             self._hass_custom_attributes = {
                 "number_of_active_parcels": len(active_shipments),
                 "parcels_arriving_today": arriving_today,
-                "days_until_next_delivery": days_until_next_delivery
+                "next_delivery_carrier": next_delivery_carrier,
+                "days_until_next_delivery": days_until_next_delivery,
             }
-        
