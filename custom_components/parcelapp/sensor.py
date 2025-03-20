@@ -36,9 +36,9 @@ class RecentShipment(SensorEntity):
         """Initialize the sensor."""
         self.coordinator = coordinator
         self._hass_custom_attributes = {}
-        self._attr_name = "Recent Parcel Shipment"
-        self._attr_unique_id = "Recent_Parcel_Shipment"
-        self._globalid = "Recent_Parcel_Shipment"
+        self._attr_name = "Parcel Recent Shipment"
+        self._attr_unique_id = "Parcel_Recent_Shipment"
+        self._globalid = "Parcel_Recent_Shipment"
         self._attr_icon = "mdi:package"
         self._attr_state = None
 
@@ -58,9 +58,6 @@ class RecentShipment(SensorEntity):
         data = self.coordinator.data
 
         if data:
-            self._attr_name = data[0]["description"]
-            if len(self._attr_name) > 20:
-                self._attr_name = self._attr_name[:20] + "..."
             try:
                 self._attr_state = data[0]["events"][0]["event"]
                 try:
@@ -107,9 +104,9 @@ class ActiveShipment(SensorEntity):
         """Initialize the sensor."""
         self.coordinator = coordinator
         self._hass_custom_attributes = {}
-        self._attr_name = "Active Parcel Shipment"
-        self._attr_unique_id = "Active_Parcel_Shipment"
-        self._globalid = "Active_Parcel_Shipment"
+        self._attr_name = "Parcel Active Shipment"
+        self._attr_unique_id = "Parcel_Active_Shipment"
+        self._globalid = "Parcel_Active_Shipment"
         self._attr_icon = "mdi:package"
         self._attr_state = None
 
