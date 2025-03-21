@@ -61,6 +61,18 @@ class RecentShipment(SensorEntity):
             data = parcel_api_data["deliveries"]
             carrier_codes = parcel_api_data["carrier_codes"]
             try:
+                description = data[0]["description"]
+            except KeyError:
+                description = "Parcel"
+            try:
+                tracking_number = data[0]["tracking_number"]
+            except KeyError:
+                tracking_number = "Unknown"
+            try:
+                date_expected = data[0]["date_expected"]
+            except KeyError:
+                date_expected = "Unknown"
+            try:
                 self._attr_state = data[0]["events"][0]["event"]
                 try:
                     event_date = data[0]["events"][0]["date"]
@@ -75,32 +87,22 @@ class RecentShipment(SensorEntity):
                 event_date = "Unknown"
                 event_location = "Unknown"
             try:
-                description = data[0]["description"]
-            except KeyError:
-                description = "Parcel"
+                status = DELIVERY_STATUS_CODES[data[0]["status_code"]]
+            except:
+                status = "Unknown"
             try:
-                date_expected = data[0]["date_expected"]
+                carrier = carrier_codes[data[0]["carrier_code"]]
             except KeyError:
-                date_expected = "Unknown"
-            try:
-                tracking_number = data[0]["tracking_number"]
-            except KeyError:
-                tracking_number = "Unknown"
+                carrier = "Unknown"
             attributes = {
                 "full_description": description,
                 "tracking_number": tracking_number,
                 "date_expected": date_expected,                
                 "event_date": event_date,
                 "event_location": event_location,
+                "status": status,
+                "carrier": carrier
             }
-            try:
-                attributes["carrier"] = carrier_codes[data[0]["carrier_code"]]
-            except KeyError:
-                attributes["carrier"] = "unknown"
-            try:
-                attributes["status"] = DELIVERY_STATUS_CODES[data[0]["status_code"]]
-            except:
-                attributes["status"] = "Unknown"
             self._hass_custom_attributes = attributes
 
 
@@ -143,23 +145,20 @@ class ActiveShipment(SensorEntity):
                 carrier_code = item["carrier_code"]
                 description = item["description"]
                 if len(description) > 20:
-                    description = description[:20] + "..."
+                    truncated_description = description[:20] + "..."
                 status_code = item["status_code"]
                 tracking_number = item["tracking_number"]
-
                 # These are the optional properties
                 # Events _should_ be present
                 try:
                     events = item["events"]
                 except KeyError:
                     events = "Unknown"
-
                 # Extra information is rarely present, so don't raise a KeyError
                 try:
                     extra_information = item["extra_information"]
                 except:
                     extra_information = None
-
                 # We try to parse the dates for use later
                 try:
                     date_expected_raw = item["date_expected"]
@@ -169,7 +168,6 @@ class ActiveShipment(SensorEntity):
                         date_expected = None
                 except KeyError:
                     date_expected = None
-
                 try:
                     date_expected_end_raw = item["date_expected_end"]
                     try:
@@ -178,7 +176,6 @@ class ActiveShipment(SensorEntity):
                         date_expected_end = None
                 except KeyError:
                     date_expected_end = None
-
                 try:
                     timestamp_expected_raw = item["timestamp_expected"]
                     try:        
@@ -187,7 +184,6 @@ class ActiveShipment(SensorEntity):
                         timestamp_expected = None
                 except:
                     timestamp_expected = None
-
                 try:
                     timestamp_expected_end_raw = item["timestamp_expected_end"]
                     try:
@@ -196,7 +192,6 @@ class ActiveShipment(SensorEntity):
                         timestamp_expected_end = None
                 except:
                     timestamp_expected_end = None
-
                 new_shipment = Shipment(
                     carrier_code = carrier_code,
                     description = description,
@@ -270,31 +265,52 @@ class ActiveShipment(SensorEntity):
             else:
                 verbose = "No parcels for now.."
             try:
-                next_delivery_carrier = carrier_codes[traceable_active_shipments[0].carrier_code]
-            except KeyError:
-                next_delivery_carrier = "Unknown"
-            try:
-                next_delivery_status = DELIVERY_STATUS_CODES[traceable_active_shipments[0].status_code]
-            except:
-                next_delivery_status = "Unknown"
-            # Catch the error codes before returning the days_until_delivery
-            if days_until_next_delivery <0:
-                days_until_next_delivery = RETURN_CODES[days_until_next_delivery]
-            try:
                 description = traceable_active_shipments[0].description
             except KeyError:
                 description = "Parcel"
             try:
                 tracking_number = traceable_active_shipments[0].tracking_number
             except KeyError:
-                tracking_number = "Unknown"                
+                tracking_number = "Unknown"
+            try:
+                date_expected = traceable_active_shipments[0].date_expected
+            except KeyError:
+                date_expected = "Unknown"
+            # Catch the error codes before returning the days_until_delivery
+            if days_until_next_delivery <0:
+                days_until_next_delivery = RETURN_CODES[days_until_next_delivery]
+            try:
+                event = traceable_active_shipments[0].events[0]["event"]
+            except KeyError:
+                event = "Uknown"
+            try:
+                event_date = traceable_active_shipments[0].events[0]["date"]
+            except KeyError:
+                event_date = "Uknown"
+            try:
+                event_location = traceable_active_shipments[0].events[0]["location"]
+            except KeyError:
+                event_location = "Unknown"
+            try:
+                next_delivery_status = DELIVERY_STATUS_CODES[traceable_active_shipments[0].status_code]
+            except:
+                next_delivery_status = "Unknown"
+            try:
+                next_delivery_carrier = carrier_codes[traceable_active_shipments[0].carrier_code]
+            except KeyError:
+                next_delivery_carrier = "Unknown"
+            # Set the attributes
             self._attr_state = verbose
             self._hass_custom_attributes = {
                 "number_of_active_parcels": len(active_shipments),
                 "parcels_arriving_today": arriving_today,
-                "next_delivery_carrier": next_delivery_carrier,
-                "next_delivery_status": next_delivery_status,
-                "days_until_next_delivery": days_until_next_delivery,
                 "full_description": description,
-                "tracking_number": tracking_number
+                "tracking_number": tracking_number,
+                "date_expected": date_expected,
+                "days_until_next_delivery": days_until_next_delivery,
+                "event": event,
+                "event_date": event_date,
+                "event_location": event_location,
+                "next_delivery_status": next_delivery_status,
+                "next_delivery_carrier": next_delivery_carrier
             }
