@@ -230,10 +230,10 @@ class ActiveShipment(SensorEntity):
                 except ValueError:
                     # Treat as unknown but something IS coming
                     days_until_next_delivery = -3
-                try:
-                    next_delivery_carrier = carrier_codes[traceable_active_shipments[0].carrier_code]
-                except KeyError:
-                    next_delivery_carrier = "Unknown"
+            try:
+                next_delivery_carrier = carrier_codes[traceable_active_shipments[0].carrier_code]
+            except KeyError:
+                next_delivery_carrier = "Unknown"
             # Set the icon based upon the days until next delivery
             if days_until_next_delivery == -3:
                 icon = "mdi:close-circle"
