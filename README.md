@@ -38,22 +38,31 @@ You can configure the integration options by navigating to **Configuration** >
 Usage
 -----
 
-Once the integration is set up, it will create a sensor entity named sensor.recent_parcel_shipment. This sensor will display the most recent shipment event and provide additional attributes with detailed information about the shipment.
+Once the integration is set up, it will create a sensor entity named sensor.parcel_recent_shipment. This sensor will display the most recent shipment event and provide additional attributes with detailed information about the shipment.
 
 ### Sensor Attributes
--   `full_description`: Full description of the shipment
--   `tracking_number`: Tracking number of the shipment
--   `status_code`: Status code of the shipment
--   `carrier_code`: Carrier code of the shipment
--   `event_date`: Date of the shipment event
--   `event_location`: Location of the shipment event
+-   `full_description`: Full description of the shipment.
+-   `tracking_number`: Tracking number of the shipment.
+-   `date_expected`: Date the shipment is expected.
+-   `event_date`: Date of the latest shipment event.
+-   `event_location`: Location of the shipment event.
+-   `status`: The converted (from status code) delivery status of the shipment.
+-   `carrier`: The converted (from carrier code) carrier name of the shipment.
 
-From v1.0.0 a second sensor entity is added, called sensor.active_parcel_shipment. It's intended to be used to provide information about when the next shipment is due, and how many shipments are currently actively being tracked. It has the following attributes:
+From v1.0.0 a second sensor entity is added, called sensor.parcel_active_shipment. It's intended to be used to provide information about when the next shipment is due, and how many shipments are currently actively being tracked. It has the following attributes:
 
 ### Sensor Attributes
--   `Number_of_active_parcels`: The number of active parcels being tracked
--   `parcels_arriving_today`: The number of parcels with an ETA of the current date
--   `days_until_next_delivery`: The number of days until the next delivery, though it will return text descriptions if it isn't relevant.
+-   `Number_of_active_parcels`: The number of active shipment being tracked.
+-   `parcels_arriving_today`: The number of shipment with an ETA of the current date.
+-   `Full description`: Full description of the next shipment.
+-   `tracking_number`: Tracking number of the shipment.
+-   `date_expected`: Date the shipment is expected.
+-   `days_until_next_delivery`: The number of days until the next delivery or text description.
+-   `event`: The state of the latest shipment event.
+-   `event_date`: Date of the latest shipment event.
+-   `event_location`: Location of the shipment event.
+-   `next_delivery_status`: The converted (from status code) delivery status of the next shipment arriving.
+-   `next_delivery_carrier`: The converted (from carrier code) carrier name of the next shipment arriving.
 
 ## Custom Button Card
 
@@ -61,7 +70,7 @@ If you are familiar with custom button card, one way to use the active_parcel_sh
 
 ```
 type: custom:button-card
-entity: sensor.active_parcel_shipment
+entity: sensor.parcel_active_shipment
 name: Parcels
 show_name: true
 show_icon: true
