@@ -5,6 +5,7 @@ PARCEL_URL = "https://api.parcel.app/external/deliveries/"
 UPDATE_INTERVAL_SECONDS = 300  # RATE LIMIT IS 20 PER HOUR
 CARRIER_CODE_ENDPOINT = "https://api.parcel.app/external/supported_carriers.json"
 DELIVERY_STATUS_CODES = {
+    -1:"None",
     0:"Completed delivery.",
     1:"Frozen delivery. There were no updates for a long time or something else makes the app believe that it will never be updated in the future.",
     2:"Delivery in transit.",
@@ -44,3 +45,21 @@ class Shipment():
         self.timestamp_expected = timestamp_expected
         self.timestamp_expected_end = timestamp_expected_end
         self.events = events
+EMPTY_SHIPMENT = Shipment(
+    carrier_code = "none",
+    description = "None",
+    status_code = -1,
+    tracking_number = "None",
+    extra_information = None,
+    date_expected = None,
+    date_expected_end = None,
+    timestamp_expected = None,
+    timestamp_expected_end = None,
+    events = [
+        {
+            "event": "None",
+            "date": "None",
+            "location": "None"
+        }
+    ]
+    )

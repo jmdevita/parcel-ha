@@ -52,6 +52,7 @@ class ParcelUpdateCoordinator(DataUpdateCoordinator):
             except:
                 carrier_codes_raw_json = {}
             carrier_codes_raw_json.update(pholder="Placeholder")
+            carrier_codes_raw_json.update(none="None")
             carrier_codes_json = {"carrier_codes_updated":str(datetime.now()),"carrier_codes":{}}
             carrier_codes_json["carrier_codes"] = carrier_codes_raw_json
             self.carrier_codes = carrier_codes_json

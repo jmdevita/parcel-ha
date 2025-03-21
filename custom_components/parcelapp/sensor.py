@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, UPDATE_INTERVAL_SECONDS, RETURN_CODES, DELIVERY_STATUS_CODES, Shipment
+from .const import DOMAIN, UPDATE_INTERVAL_SECONDS, RETURN_CODES, DELIVERY_STATUS_CODES, Shipment, EMPTY_SHIPMENT
 from .coordinator import ParcelConfigEntry, ParcelUpdateCoordinator
 
 PLATFORMS = [Platform.SENSOR]
@@ -63,7 +63,7 @@ class RecentShipment(SensorEntity):
             try:
                 description = data[0]["description"]
             except KeyError:
-                description = "Parcel"
+                description = "No description"
             try:
                 tracking_number = data[0]["tracking_number"]
             except KeyError:
@@ -71,17 +71,17 @@ class RecentShipment(SensorEntity):
             try:
                 date_expected = data[0]["date_expected"]
             except KeyError:
-                date_expected = "Unknown"
+                date_expected = "None"
             try:
                 self._attr_state = data[0]["events"][0]["event"]
                 try:
                     event_date = data[0]["events"][0]["date"]
                 except KeyError:
-                    event_date = "Unknown"
+                    event_date = "None"
                 try:
                     event_location = data[0]["events"][0]["location"]
                 except KeyError:
-                    event_location = "Unknown"
+                    event_location = "None"
             except KeyError:
                 self._attr_state = "Unknown"
                 event_date = "Unknown"
@@ -153,7 +153,7 @@ class ActiveShipment(SensorEntity):
                 try:
                     events = item["events"]
                 except KeyError:
-                    events = "Unknown"
+                    events = "None"
                 # Extra information is rarely present, so don't raise a KeyError
                 try:
                     extra_information = item["extra_information"]
@@ -221,14 +221,17 @@ class ActiveShipment(SensorEntity):
                 else:
                     # Treat as unknown but something IS coming
                     days_until_next_delivery = -2
+                next_traceable_shipment = EMPTY_SHIPMENT
             else:
                 try:
                     # sort the traceable active shipments list so the next shipment is first
                     traceable_active_shipments.sort(key=lambda x: x.date_expected)
-                    next_delivery_date = traceable_active_shipments[0].date_expected
+                    next_traceable_shipment = traceable_active_shipments[0]
+                    next_delivery_date = next_traceable_shipment.date_expected
                     days_until_next_delivery = (next_delivery_date.date() - today).days
                 except ValueError:
                     # Treat as unknown but something IS coming
+                    next_traceable_shipment = EMPTY_SHIPMENT
                     days_until_next_delivery = -3
             # Set the icon based upon the days until next delivery
             if days_until_next_delivery == -3:
@@ -263,40 +266,41 @@ class ActiveShipment(SensorEntity):
                 else:
                     verbose = str(len(active_shipments)) + " active parcels"
             else:
-                verbose = "No parcels for now.."
+                verbose = "No parcels for now.."            
             try:
-                description = traceable_active_shipments[0].description
+                description = next_traceable_shipment.description
             except KeyError:
-                description = "Parcel"
+                description = "No description"
             try:
-                tracking_number = traceable_active_shipments[0].tracking_number
+                tracking_number = next_traceable_shipment.tracking_number
             except KeyError:
                 tracking_number = "Unknown"
+            # This would've been caught earlier, but for consistency
             try:
-                date_expected = traceable_active_shipments[0].date_expected
+                date_expected = next_traceable_shipment.date_expected
             except KeyError:
                 date_expected = "Unknown"
             # Catch the error codes before returning the days_until_delivery
             if days_until_next_delivery <0:
                 days_until_next_delivery = RETURN_CODES[days_until_next_delivery]
             try:
-                event = traceable_active_shipments[0].events[0]["event"]
+                event = next_traceable_shipment.events[0]["event"]
             except KeyError:
-                event = "Uknown"
+                event = "Unknown"
             try:
-                event_date = traceable_active_shipments[0].events[0]["date"]
+                event_date = next_traceable_shipment.events[0]["date"]
             except KeyError:
-                event_date = "Uknown"
+                event_date = "Unknown"
             try:
-                event_location = traceable_active_shipments[0].events[0]["location"]
+                event_location = next_traceable_shipment.events[0]["location"]
             except KeyError:
                 event_location = "Unknown"
             try:
-                next_delivery_status = DELIVERY_STATUS_CODES[traceable_active_shipments[0].status_code]
+                next_delivery_status = DELIVERY_STATUS_CODES[next_traceable_shipment.status_code]
             except:
                 next_delivery_status = "Unknown"
             try:
-                next_delivery_carrier = carrier_codes[traceable_active_shipments[0].carrier_code]
+                next_delivery_carrier = carrier_codes[next_traceable_shipment.carrier_code]
             except KeyError:
                 next_delivery_carrier = "Unknown"
             # Set the attributes
