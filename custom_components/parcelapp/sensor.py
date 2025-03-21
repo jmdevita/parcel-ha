@@ -253,7 +253,7 @@ class ActiveShipment(SensorEntity):
             # Set up the verbose text
             if arriving_today > 0:
                 if arriving_today == 1:
-                    verbose = "1 parcels"
+                    verbose = "1 parcel"
                 else:
                     verbose = str(arriving_today) + " parcels"
             elif days_until_next_delivery >0:
