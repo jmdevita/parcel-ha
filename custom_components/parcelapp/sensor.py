@@ -82,20 +82,25 @@ class RecentShipment(SensorEntity):
                 date_expected = data[0]["date_expected"]
             except KeyError:
                 date_expected = "Unknown"
-
+            try:
+                tracking_number = data[0]["tracking_number"]
+            except KeyError:
+                tracking_number = "Unknown"
             attributes = {
                 "full_description": description,
-                "tracking_number": data[0]["tracking_number"],
-                "date_expected": date_expected,
-                "status_code": data[0]["status_code"],
-                "carrier_code": data[0]["carrier_code"],                
+                "tracking_number": tracking_number,
+                "date_expected": date_expected,                
                 "event_date": event_date,
                 "event_location": event_location,
             }
             try:
-                attributes["carrier_code_verbose"] = carrier_codes[data[0]["carrier_code"]]
+                attributes["carrier"] = carrier_codes[data[0]["carrier_code"]]
             except KeyError:
-                attributes["carrier_code_verbose"] = "unknown"
+                attributes["carrier"] = "unknown"
+            try:
+                attributes["status"] = DELIVERY_STATUS_CODES[data[0]["status_code"]]
+            except:
+                attributes["status"] = "Unknown"
             self._hass_custom_attributes = attributes
 
 
@@ -230,10 +235,6 @@ class ActiveShipment(SensorEntity):
                 except ValueError:
                     # Treat as unknown but something IS coming
                     days_until_next_delivery = -3
-            try:
-                next_delivery_carrier = carrier_codes[traceable_active_shipments[0].carrier_code]
-            except KeyError:
-                next_delivery_carrier = "Unknown"
             # Set the icon based upon the days until next delivery
             if days_until_next_delivery == -3:
                 icon = "mdi:close-circle"
@@ -268,14 +269,32 @@ class ActiveShipment(SensorEntity):
                     verbose = str(len(active_shipments)) + " active parcels"
             else:
                 verbose = "No parcels for now.."
+            try:
+                next_delivery_carrier = carrier_codes[traceable_active_shipments[0].carrier_code]
+            except KeyError:
+                next_delivery_carrier = "Unknown"
+            try:
+                next_delivery_status = DELIVERY_STATUS_CODES[traceable_active_shipments[0].status_code]
+            except:
+                next_delivery_status = "Unknown"
             # Catch the error codes before returning the days_until_delivery
             if days_until_next_delivery <0:
                 days_until_next_delivery = RETURN_CODES[days_until_next_delivery]
-            
+            try:
+                description = traceable_active_shipments[0].description
+            except KeyError:
+                description = "Parcel"
+            try:
+                tracking_number = traceable_active_shipments[0].tracking_number
+            except KeyError:
+                tracking_number = "Unknown"                
             self._attr_state = verbose
             self._hass_custom_attributes = {
                 "number_of_active_parcels": len(active_shipments),
                 "parcels_arriving_today": arriving_today,
                 "next_delivery_carrier": next_delivery_carrier,
+                "next_delivery_status": next_delivery_status,
                 "days_until_next_delivery": days_until_next_delivery,
+                "full_description": description,
+                "tracking_number": tracking_number
             }
