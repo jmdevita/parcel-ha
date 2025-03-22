@@ -97,6 +97,9 @@ class RecentShipment(SensorEntity):
             try:
                 status = DELIVERY_STATUS_CODES[data[0]["status_code"]]
                 self._attr_state = status
+                # If the parcel is delivered, report the delivery date instead of "Unknown"
+                if data[0]["status_code"] == 0:
+                    date_expected = event_date
             except:
                 status = "Unknown"
                 self._attr_state = status
