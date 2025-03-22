@@ -4,6 +4,7 @@ import pytest
 from unittest.mock import AsyncMock
 from pathlib import Path
 import json
+from datetime import datetime
 from custom_components.parcelapp.coordinator import ParcelUpdateCoordinator
 
 from homeassistant.setup import async_setup_component
@@ -21,7 +22,7 @@ async def test_parcel_update_coordinator(hass, aioclient_mock):
     fixtures_path = Path(__file__).parent / "fixtures"
     with open(fixtures_path / "recent.json") as file:
         recent_deliveries = json.load(file)
-
+    recent_deliveries['carrer_codes']  = {'pholder': 'Placeholder', 'none': 'None'}
     # Mock the API endpoint for a successful response
     mock_api_url = "https://api.parcel.app/external/deliveries/?filter_mode=recent"
     aioclient_mock.get(
@@ -44,4 +45,4 @@ async def test_parcel_update_coordinator(hass, aioclient_mock):
 
     # Assert the data was fetched correctly
     assert coordinator.last_update_success
-    assert coordinator.data == recent_deliveries["deliveries"]
+    assert coordinator.data['deliveries'] == recent_deliveries['deliveries'] # This is only looking at delivery data, not extra parcel info

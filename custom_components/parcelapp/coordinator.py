@@ -24,7 +24,7 @@ class ParcelUpdateCoordinator(DataUpdateCoordinator):
         self.api_key = entry.data["api_key"]
         self._hass = hass
         self.session = async_get_clientsession(self._hass)
-        self.carrier_codes = {"carrier_codes_updated":"","carrier_codes":{}}
+        self.carrier_codes = {"carrier_codes_updated": "", "carrier_codes": {}}
 
         super().__init__(
             hass,
@@ -32,7 +32,7 @@ class ParcelUpdateCoordinator(DataUpdateCoordinator):
             name=DOMAIN,
             config_entry=entry,
             update_interval=timedelta(seconds=UPDATE_INTERVAL_SECONDS),
-            always_update=True
+            always_update=True,
         )
 
     async def _async_update_data(self) -> dict[str, Any]:
@@ -40,9 +40,9 @@ class ParcelUpdateCoordinator(DataUpdateCoordinator):
         API_URL = f"{PARCEL_URL}?filter_mode=recent"
         carrier_codes_updated = self.carrier_codes["carrier_codes_updated"]
         try:
-            updated = datetime.strptime(carrier_codes_updated,'%Y-%m-%d %H:%M:%S.%f')
+            updated = datetime.strptime(carrier_codes_updated, "%Y-%m-%d %H:%M:%S.%f")
         except:
-            updated = datetime.now() + timedelta(hours=-13)        
+            updated = datetime.now() + timedelta(hours=-13)
         if updated < datetime.now() + timedelta(hours=-12):
             try:
                 response = await self.session.get(CARRIER_CODE_ENDPOINT)
@@ -53,7 +53,10 @@ class ParcelUpdateCoordinator(DataUpdateCoordinator):
                 carrier_codes_raw_json = {}
             carrier_codes_raw_json.update(pholder="Placeholder")
             carrier_codes_raw_json.update(none="None")
-            carrier_codes_json = {"carrier_codes_updated":str(datetime.now()),"carrier_codes":{}}
+            carrier_codes_json = {
+                "carrier_codes_updated": str(datetime.now()),
+                "carrier_codes": {},
+            }
             carrier_codes_json["carrier_codes"] = carrier_codes_raw_json
             self.carrier_codes = carrier_codes_json
         else:
@@ -64,8 +67,13 @@ class ParcelUpdateCoordinator(DataUpdateCoordinator):
             response.raise_for_status()
             payload = await response.text()
             payload_json = json.loads(payload)
-            payload_json["carrier_codes_updated"] = carrier_codes_json["carrier_codes_updated"]
+            payload_json["carrier_codes_updated"] = carrier_codes_json[
+                "carrier_codes_updated"
+            ]
             payload_json["carrier_codes"] = carrier_codes_json["carrier_codes"]
+            payload_json["utc_timestamp"] = datetime.now().strftime(
+                "%Y-%m-%d %H:%M:%S.%f"
+            )
             return payload_json
 
         except Exception as err:
