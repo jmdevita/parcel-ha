@@ -63,3 +63,16 @@ EMPTY_SHIPMENT = Shipment(
         }
     ]
     )
+EMPTY_ATTRIBUTES = {
+    "number_of_active_parcels": 0,
+    "parcels_arriving_today": 0,
+    "full_description": "No description",
+    "tracking_number": "None",
+    "date_expected": "None",
+    "days_until_next_delivery": "No active parcels.",
+    "event": "None",
+    "event_date": "None",
+    "event_location": "None",
+    "next_delivery_status": "None",
+    "next_delivery_carrier": "None",
+    }

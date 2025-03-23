@@ -17,6 +17,7 @@ from .const import (
     DELIVERY_STATUS_CODES,
     Shipment,
     EMPTY_SHIPMENT,
+    EMPTY_ATTRIBUTES,
 )
 from .coordinator import ParcelConfigEntry, ParcelUpdateCoordinator
 
@@ -71,7 +72,11 @@ class RecentShipment(SensorEntity):
         await self.coordinator.async_request_refresh()
         parcel_api_data = self.coordinator.data
 
-        if parcel_api_data["deliveries"]:
+        if parcel_api_data["deliveries"] == []:
+            self._attr_state = "No parcels for now.."
+            self._attr_icon = "mdi:close-circle"
+            self._hass_custom_attributes = EMPTY_ATTRIBUTES
+        elif parcel_api_data["deliveries"]:
             data = parcel_api_data["deliveries"]
             carrier_codes = parcel_api_data["carrier_codes"]
             try:
@@ -147,7 +152,12 @@ class ActiveShipment(SensorEntity):
         active_shipments = []
         traceable_active_shipments = []
         today = date.today()
-        if parcel_api_data["deliveries"]:
+
+        if parcel_api_data["deliveries"] == []:
+            self._attr_state = "No parcels for now.."
+            self._attr_icon = "mdi:close-circle"
+            self._hass_custom_attributes = EMPTY_ATTRIBUTES
+        elif parcel_api_data["deliveries"]:
             data = parcel_api_data["deliveries"]
             carrier_codes = parcel_api_data["carrier_codes"]
             for item in data:
