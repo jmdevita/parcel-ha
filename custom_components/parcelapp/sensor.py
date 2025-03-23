@@ -32,7 +32,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Parcel sensor platform from a config entry."""
-    coordinator = hass.data[DOMAIN]["coordinator"]
+    coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
     async_add_entities(
         [
             RecentShipment(coordinator),
@@ -97,9 +97,6 @@ class RecentShipment(SensorEntity):
             try:
                 status = DELIVERY_STATUS_CODES[data[0]["status_code"]]
                 self._attr_state = status
-                # If the parcel is delivered, report the delivery date instead of "Unknown"
-                if data[0]["status_code"] == 0:
-                    date_expected = event_date
             except:
                 status = "Unknown"
                 self._attr_state = status

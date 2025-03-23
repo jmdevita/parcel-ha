@@ -27,16 +27,27 @@ async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: ParcelConfigEntry) -> bool:
     """Set up the integration based on a config entry."""
     _LOGGER.info("Setting up Parcel integration based on config entry")
+
+    # Check if the entry is already set up
+    if DOMAIN in hass.data and entry.entry_id in hass.data[DOMAIN]:
+        raise ValueError(
+            f"Config entry {entry.title} ({entry.entry_id}) for {DOMAIN} has already been setup!"
+        )
+
     # Setup the coordinator
     coordinator = ParcelUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
 
     # Store the coordinator in hass.data
-    hass.data[DOMAIN] = {"coordinator": coordinator}
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {"coordinator": coordinator}
+
+    # Forward entry setups only if not already forwarded
+    if "platforms" not in hass.data[DOMAIN][entry.entry_id]:
+        await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+        hass.data[DOMAIN][entry.entry_id]["platforms"] = PLATFORMS
 
     entry.runtime_data = coordinator
     entry.async_on_unload(entry.add_update_listener(async_update_entry))
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     await cleanup_old_device(hass)
 
     return True
@@ -46,11 +57,20 @@ async def async_unload_entry(hass: HomeAssistant, entry: ParcelConfigEntry) -> b
     """Unload a config entry."""
     _LOGGER.info("Unloading Parcel integration")
 
-    # Clean up any resources created during setup
-    if DOMAIN in hass.data:
-        hass.data[DOMAIN].clear()
+    # Unload platforms
+    if DOMAIN in hass.data and entry.entry_id in hass.data[DOMAIN]:
+        platforms = hass.data[DOMAIN][entry.entry_id].get("platforms", [])
+        unload_ok = await hass.config_entries.async_unload_platforms(entry, platforms)
 
-    return True
+        # Clean up resources
+        if unload_ok:
+            hass.data[DOMAIN].pop(entry.entry_id)
+            if not hass.data[DOMAIN]:  # If no entries remain, clean up DOMAIN
+                hass.data.pop(DOMAIN)
+
+        return unload_ok
+
+    return False
 
 
 async def async_update_entry(hass: HomeAssistant, config_entry: ParcelConfigEntry):
