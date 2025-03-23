@@ -99,8 +99,20 @@ async def test_recent_shipment_sensor_no_data(hass):
     await sensor.async_update()
 
     # Assert the state and attributes
-    assert sensor.state is None
-    assert sensor.extra_state_attributes == {}
+    assert sensor.state == 'No parcels for now..'
+    assert sensor.extra_state_attributes == {
+        'date_expected': 'None',
+        'days_until_next_delivery': 'No active parcels.',
+        'event': 'None',
+        'event_date': 'None',
+        'event_location': 'None',
+        'full_description': 'No description',
+        'next_delivery_carrier': 'None',
+        'next_delivery_status': 'None',
+        'number_of_active_parcels': 0,
+        'parcels_arriving_today': 0,
+        'tracking_number': 'None'
+    }
 
 
 @pytest.mark.asyncio
@@ -118,5 +130,17 @@ async def test_active_shipment_sensor_no_data(hass):
     await sensor.async_update()
 
     # Assert the state and attributes
-    assert sensor.state is None
-    assert sensor.extra_state_attributes == {}
+    assert sensor.state == 'No parcels for now..'
+    assert sensor.extra_state_attributes == {
+        'date_expected': 'None',
+        'days_until_next_delivery': 'No active parcels.',
+        'event': 'None',
+        'event_date': 'None',
+        'event_location': 'None',
+        'full_description': 'No description',
+        'next_delivery_carrier': 'None',
+        'next_delivery_status': 'None',
+        'number_of_active_parcels': 0,
+        'parcels_arriving_today': 0,
+        'tracking_number': 'None'
+    }
