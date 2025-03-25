@@ -182,8 +182,12 @@ class ActiveShipment(SensorEntity):
                     date_expected_raw = item["date_expected"]
                     try:
                         date_expected = datetime.fromisoformat(date_expected_raw)
-                    except KeyError:
-                        date_expected = None
+                    except:
+                        try:
+                            date_expected_raw = date_expected_raw.replace("  "," ")
+                            date_expected = datetime.datetime.fromisoformat(date_expected_raw)
+                        except KeyError:
+                            date_expected = None
                 except KeyError:
                     date_expected = None
                 try:
