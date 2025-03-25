@@ -384,4 +384,5 @@ class RawShipmentData(SensorEntity):
 
         if parcel_api_data:
             self._attr_state = parcel_api_data["utc_timestamp"]
+            del parcel_api_data["carrier_codes"]
             self._hass_custom_attributes = parcel_api_data
