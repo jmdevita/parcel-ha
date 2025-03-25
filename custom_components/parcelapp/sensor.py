@@ -184,8 +184,11 @@ class ActiveShipment(SensorEntity):
                         date_expected = datetime.fromisoformat(date_expected_raw)
                     except:
                         try:
+                            # Extra loop in case of double spacing in the reported date string
                             date_expected_raw = date_expected_raw.replace("  "," ")
-                            date_expected = datetime.datetime.fromisoformat(date_expected_raw)
+                            date_expected = datetime.fromisoformat(
+                                date_expected_raw
+                            )
                         except KeyError:
                             date_expected = None
                 except KeyError:
@@ -196,8 +199,15 @@ class ActiveShipment(SensorEntity):
                         date_expected_end = datetime.fromisoformat(
                             date_expected_end_raw
                         )
-                    except KeyError:
-                        date_expected_end = None
+                    except:
+                        try:
+                            # Extra loop in case of double spacing in the reported date string
+                            date_expected_end_raw = date_expected_end_raw.replace("  "," ")
+                            date_expected_end = datetime.fromisoformat(
+                                date_expected_end_raw
+                            )
+                        except KeyError:
+                            date_expected_end = None
                 except KeyError:
                     date_expected_end = None
                 try:
