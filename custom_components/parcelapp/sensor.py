@@ -182,8 +182,15 @@ class ActiveShipment(SensorEntity):
                     date_expected_raw = item["date_expected"]
                     try:
                         date_expected = datetime.fromisoformat(date_expected_raw)
-                    except KeyError:
-                        date_expected = None
+                    except:
+                        try:
+                            # Extra loop in case of double spacing in the reported date string
+                            date_expected_raw = date_expected_raw.replace("  "," ")
+                            date_expected = datetime.fromisoformat(
+                                date_expected_raw
+                            )
+                        except KeyError:
+                            date_expected = None
                 except KeyError:
                     date_expected = None
                 try:
@@ -192,8 +199,15 @@ class ActiveShipment(SensorEntity):
                         date_expected_end = datetime.fromisoformat(
                             date_expected_end_raw
                         )
-                    except KeyError:
-                        date_expected_end = None
+                    except:
+                        try:
+                            # Extra loop in case of double spacing in the reported date string
+                            date_expected_end_raw = date_expected_end_raw.replace("  "," ")
+                            date_expected_end = datetime.fromisoformat(
+                                date_expected_end_raw
+                            )
+                        except KeyError:
+                            date_expected_end = None
                 except KeyError:
                     date_expected_end = None
                 try:
@@ -384,4 +398,9 @@ class RawShipmentData(SensorEntity):
 
         if parcel_api_data:
             self._attr_state = parcel_api_data["utc_timestamp"]
-            self._hass_custom_attributes = parcel_api_data
+            self._hass_custom_attributes = {
+                "success": parcel_api_data["success"],
+                "deliveries": parcel_api_data["deliveries"],
+                "carrier_codes_updated": parcel_api_data["carrier_codes_updated"],
+                "utc_timestamp": parcel_api_data["utc_timestamp"],
+            }
