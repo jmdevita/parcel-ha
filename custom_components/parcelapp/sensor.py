@@ -1,6 +1,7 @@
 """Integration for Parcel tracking sensor."""
 
 from datetime import datetime, timedelta, date
+from dateutil.parser import parse
 import logging
 from typing import Any
 
@@ -151,6 +152,7 @@ class ActiveShipment(SensorEntity):
         shipments = []
         active_shipments = []
         traceable_active_shipments = []
+        delivered_today_shipments = []
         today = date.today()
 
         if parcel_api_data["deliveries"] == []:
@@ -178,7 +180,30 @@ class ActiveShipment(SensorEntity):
                 except:
                     extra_information = None
                 # We try to parse the dates for use later
-                try:
+                
+                if ("date_expected" not in item) and (status_code == 0):
+                    try:
+                        event_date_expected = events[0]["date"]
+                        print(f"event_date_expected = {event_date_expected}")
+                        try:
+                            print(f"Trying to parse as ISO compliant..")
+                            date_expected = datetime.fromisoformat(event_date_expected)
+                        except:
+                            try:
+                                date_expected_dayfirst = parse(event_date_expected,dayfirst=True)
+                                date_expected_dayfirst = date_expected_dayfirst.date()
+                            except:
+                                date_expected_dayfirst = None
+                            try:
+                                date_expected_monthfirst = parse(date_expected_raw,dayfirst=False)
+                                date_expected_monthfirst = date_expected_monthfirst.date()
+                            except:
+                                date_expected_monthfirst = None
+                            if (date_expected_dayfirst == today) or (date_expected_monthfirst == today):
+                                date_expected = today
+                    except KeyError:
+                        date_expected = None
+                else:
                     date_expected_raw = item["date_expected"]
                     try:
                         date_expected = datetime.fromisoformat(date_expected_raw)
@@ -191,8 +216,6 @@ class ActiveShipment(SensorEntity):
                             )
                         except KeyError:
                             date_expected = None
-                except KeyError:
-                    date_expected = None
                 try:
                     date_expected_end_raw = item["date_expected_end"]
                     try:
@@ -252,6 +275,13 @@ class ActiveShipment(SensorEntity):
                         if today <= new_shipment.date_expected.date():
                             active_shipments.append(new_shipment)
                             traceable_active_shipments.append(new_shipment)
+                else:
+                    try:
+                        delivery_date = new_shipment.date_expected
+                        if delivery_date == today:
+                            delivered_today_shipments.append(new_shipment)
+                    except:
+                        pass
             # catch if there are no active shipments
             if len(traceable_active_shipments) == 0:
                 if len(active_shipments) == 0:
@@ -348,6 +378,7 @@ class ActiveShipment(SensorEntity):
                 ]
             except KeyError:
                 next_delivery_carrier = "Unknown"
+            delivered_today = len(delivered_today_shipments)
             # Set the attributes
             self._attr_state = verbose
             self._hass_custom_attributes = {
@@ -362,6 +393,7 @@ class ActiveShipment(SensorEntity):
                 "event_location": event_location,
                 "next_delivery_status": next_delivery_status,
                 "next_delivery_carrier": next_delivery_carrier,
+                "delivered_today": delivered_today,
             }
 
 
