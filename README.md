@@ -64,6 +64,48 @@ From v1.0.0 a second sensor entity is added, called sensor.parcel_active_shipmen
 -   `next_delivery_status`: The converted (from status code) delivery status of the next shipment arriving.
 -   `next_delivery_carrier`: The converted (from carrier code) carrier name of the next shipment arriving.
 
+### Raw Data Sensor
+From v1.2.0 another sensor entity is added, called `sensor.parcel_raw_shipment_data`. It contains raw json data from the API pull for debugging or custom templating. It has the following attributes:
+
+#### Raw Data Sensor Attributes
+As per the [Parcel App API documentation](https://parcelapp.net/help/api.html)
+
+-   `success` (bool, always provided): Whether a request was successful.
+-   `error_message` (string): Provided in case of an error.
+-   `deliveries` (array): Requested deliveries.
+-   `Utc timestamp`: The time the data in the sensor was last updated
+
+Response Schema for Deliveries Attribute
+-  `carrier_code` (string, always provided): Carrier for a delivery, provided as an internal code. Full list (updated daily) is available [here](https://api.parcel.app/external/supported_carriers.json).
+-  `description` (string, always provided): Description that was provided for a delivery when it was created.
+-  `status_code` (int, always provided): See the "Delivery Status Codes" paragraph below.
+-  `tracking_number` (string, always provided): Tracking number for a delivery.
+-  `events` (array, always provided): Delivery events. Empty if no data is available.
+-  `extra_information` (string): It could be a postcode or an email. Something extra that was required by a carrier to track a delivery.
+-  `date_expected` (string): Expected delivery date/time without specific timezone information.
+-  `date_expected_end` (string): If provided, that means that a has delivery window for package and this is the end date/time.
+-  `timestamp_expected` (int): Epoch time for expected delivery date. Available only when a carrier provides full date/time/timezone for an expected delivery date.
+-  `timestamp_expected_end` (int): Similar to date_expected_end, used to indicate the end time for a delivery window.
+
+Response Schema for Delivery Events:
+-  `event` (string, always provided): Description of the delivery event.
+-  `date` (string, always provided): Delivery date/time info.
+-  `location` (string): Location of the delivery event.
+-  `additional` (string): Additional information from the carrier related to the delivery event.
+
+Delivery Status Codes:
+-  0 - completed delivery.
+-  1 - frozen delivery. There were no updates for a long time or something else makes the app believe that it will never be updated in the future.
+-  2 - delivery in transit.
+-  3 - delivery expecting a pickup by the recipient.
+-  4 - out for delivery.
+-  5 - delivery not found.
+-  6 - failed delivery attempt.
+-  7 - delivery exception, something is wrong and requires your attention.
+-  8 - carrier has received information about a package, but has not physically received it yet.
+
+The raw data sensor is disabled by default and has to be enabled. To do so, in the integration, click on the "Parcel Raw Shipment Data" entity, click on settings, toggle the "Enabled" setting to "on", click "Update".
+
 ## Custom Button Card
 
 If you are familiar with custom button card, one way to use the active_parcel_shipment sensor is with the following button card template:
