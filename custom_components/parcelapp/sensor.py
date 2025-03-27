@@ -202,20 +202,23 @@ class ActiveShipment(SensorEntity):
                             if (date_expected_dayfirst == today) or (date_expected_monthfirst == today):
                                 date_expected = today
                     except KeyError:
-                        date_expected = None
+                        date_expected = "None"
                 else:
-                    date_expected_raw = item["date_expected"]
-                    try:
-                        date_expected = datetime.fromisoformat(date_expected_raw)
-                    except:
+                    if "date_expected" in item:
+                        date_expected_raw = item["date_expected"]
                         try:
-                            # Extra loop in case of double spacing in the reported date string
-                            date_expected_raw = date_expected_raw.replace("  "," ")
-                            date_expected = datetime.fromisoformat(
-                                date_expected_raw
-                            )
-                        except KeyError:
-                            date_expected = None
+                            date_expected = datetime.fromisoformat(date_expected_raw)
+                        except:
+                            try:
+                                # Extra loop in case of double spacing in the reported date string
+                                date_expected_raw = date_expected_raw.replace("  "," ")
+                                date_expected = datetime.fromisoformat(
+                                    date_expected_raw
+                                )
+                            except KeyError:
+                                date_expected = None
+                    else:
+                        date_expected_raw = "None"
                 try:
                     date_expected_end_raw = item["date_expected_end"]
                     try:
