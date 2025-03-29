@@ -10,9 +10,10 @@ This guide explains how to set up and use the ParcelApp integration in Home Assi
 2. Sign in with your credentials.
 3. Open the **Developer Tools** in your browser (right-click anywhere on the page and select **Inspect**).
 4. Go to the **Network** tab.
-5. Look for a network event labeled `message=logged` (this is usually the first event after logging in).
-6. Under **Request Headers**, locate the `Cookie` field and find the value for `account_token` (e.g., `account_token=_TOKEN_HERE`).
-7. Copy the token and input it into the Home Assistant configuration under `account_token`.  
+5. Refresh the page.
+6. Look for a network event labeled `message=logged` (this is usually the first event after logging in).
+7. Under **Request Headers**, locate the `Cookie` field and find the value for `account_token` (e.g., `account_token=_TOKEN_HERE`).
+8. Copy the token and input it into the Home Assistant configuration under `account_token`.  
    **Note**: There is no validation step for this token.
 
 ---
