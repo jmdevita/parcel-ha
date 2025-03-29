@@ -1,0 +1,17 @@
+add_parcel:
+  fields:
+    parcel_name:
+      example: "My Parcel"
+      required: true
+      selector:
+        text:
+    tracking_number:
+      example: "1234567890"
+      required: true
+      selector:
+        text:
+    courier:
+      example: "ups"
+      required: true
+      selector:
+        text:
