@@ -5,7 +5,8 @@
                 "title": "Parcel Configuration",
                 "description": "Set up Parcel tracking for parcelapp",
                 "data": {
-                    "api_key": "API Key (Required)"
+                    "api_key": "API Key (Required)",
+                    "account_token": "Account Token (Optional) | BETA"
                 }
             }
         }
