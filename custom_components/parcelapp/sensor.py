@@ -183,6 +183,7 @@ class ActiveShipment(SensorEntity):
                 # First, if there is no date expected, we branch
                 if "date_expected" not in item:
                     # If the status code is 0 or 3, the parcel has been delivered, and we will have to try to recreate the delivery date
+                    date_expected = None
                     if status_code in [0,3]:
                         try:
                             # Take the latest event date that _should_ be delivery
