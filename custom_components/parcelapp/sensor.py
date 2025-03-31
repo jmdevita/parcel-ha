@@ -38,6 +38,7 @@ async def async_setup_entry(
         [
             RecentShipment(coordinator),
             ActiveShipment(coordinator),
+            CollectionShipment(coordinator),
             RawShipmentData(coordinator),
         ],
         update_before_add=True,
@@ -324,17 +325,24 @@ class ActiveShipment(SensorEntity):
             # Catch the error codes before returning the days_until_delivery
             if days_until_next_delivery < 0:
                 days_until_next_delivery = RETURN_CODES[days_until_next_delivery]
-            try:
-                event = next_traceable_shipment.events[0]["event"]
-            except KeyError:
+            # Retrieve further details of the next shipment if they exist
+            next_traceable_shipment_events = next_traceable_shipment.events
+            if len(next_traceable_shipment_events) > 0:
+                try:
+                    event = next_traceable_shipment.events[0]["event"]
+                except KeyError:
+                    event = "Unknown"
+                try:
+                    event_date = next_traceable_shipment.events[0]["date"]
+                except KeyError:
+                    event_date = "Unknown"
+                try:
+                    event_location = next_traceable_shipment.events[0]["location"]
+                except KeyError:
+                    event_location = "Unknown"
+            else:
                 event = "Unknown"
-            try:
-                event_date = next_traceable_shipment.events[0]["date"]
-            except KeyError:
                 event_date = "Unknown"
-            try:
-                event_location = next_traceable_shipment.events[0]["location"]
-            except KeyError:
                 event_location = "Unknown"
             try:
                 next_delivery_status = DELIVERY_STATUS_CODES[
@@ -364,6 +372,81 @@ class ActiveShipment(SensorEntity):
                 "next_delivery_carrier": next_delivery_carrier,
             }
 
+class CollectionShipment(SensorEntity):
+    """Representation of a sensor that reports any parcels currently ready for collection."""
+
+    # Disabled by default
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(self, coordinator: ParcelUpdateCoordinator) -> None:
+        """Initialize the sensor."""
+        self.coordinator = coordinator
+        self._hass_custom_attributes = {}
+        self._attr_name = "Parcel Collection Shipment"
+        self._attr_unique_id = "Parcel_Collection_Shipment"
+        self._globalid = "Parcel_Collection_Shipment"
+        self._attr_icon = "mdi:package-up"
+        self._attr_state = None
+
+    @property
+    def state(self) -> Any:
+        """Return the current state of the sensor."""
+        return self._attr_state
+
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes of the sensor."""
+        return self._hass_custom_attributes
+
+    async def async_update(self) -> None:
+        """Fetch the latest data from the coordinator."""
+        await self.coordinator.async_request_refresh()
+        parcel_api_data = self.coordinator.data
+        collectable_shipments = [] 
+
+        if parcel_api_data["deliveries"]:
+            data = parcel_api_data["deliveries"]
+            for item in data:
+                # These are the mandatory properties
+                carrier_code = item["carrier_code"]
+                description = item["description"]
+                status_code = item["status_code"]
+                tracking_number = item["tracking_number"]
+                # These are the optional properties
+                # Events _should_ be present
+                try:
+                    events = item["events"]
+                except KeyError:
+                    events = "None"
+                # The collection location _should_ be the location in the latest event
+                try:
+                    location = events[0]["location"]
+                except:
+                    location = "Unknown"
+                # The collection date/time _should_ be the date in the latest event
+                # For this version this will only return the datetime as given by the carrier
+                try:
+                    delivered = events[0]["date"]
+                except:
+                    delivered = "Unknown"
+                if status_code == 3:
+                    new_shipment = {
+                        "description": description,
+                        "location": location,
+                        "delivered": delivered,
+                    }
+                    collectable_shipments.append(new_shipment)
+            collectables = len(collectable_shipments)
+            self._attr_state = collectables
+            icon = "mdi:package-up"
+            if 0 < collectables < 10:
+                icon = "mdi:numeric-" + str(collectables) + "-circle"
+            elif 10 <= collectables:
+                icon = "mdi:numeric-9-plus-circle"
+            self._attr_icon = icon
+            self._hass_custom_attributes = {                
+                "collectable_shipments": collectable_shipments,
+            }
 
 class RawShipmentData(SensorEntity):
     """Representation of a sensor that fetches the raw data from the API."""
