@@ -180,45 +180,66 @@ class ActiveShipment(SensorEntity):
                 except:
                     extra_information = None
                 # We try to parse the dates for use later
-                
-                if ("date_expected" not in item) and (status_code == 0):
-                    try:
-                        event_date_expected = events[0]["date"]
-                        print(f"event_date_expected = {event_date_expected}")
+                # First, if there is no date expected, we branch
+                if "date_expected" not in item:
+                    # If the status code is 0 or 3, the parcel has been delivered, and we will have to try to recreate the delivery date
+                    if status_code in [0,3]:
                         try:
-                            print(f"Trying to parse as ISO compliant..")
-                            date_expected = datetime.fromisoformat(event_date_expected)
-                        except:
+                            # Take the latest event date that _should_ be delivery
+                            event_date_expected = events[0]["date"]
                             try:
-                                date_expected_dayfirst = parse(event_date_expected,dayfirst=True)
-                                date_expected_dayfirst = date_expected_dayfirst.date()
+                                # Hopefully the date format is ISO..
+                                date_expected = datetime.datetime.fromisoformat(event_date_expected)
+                                date_expected = date_expected.date()
                             except:
-                                date_expected_dayfirst = None
-                            try:
-                                date_expected_monthfirst = parse(date_expected_raw,dayfirst=False)
-                                date_expected_monthfirst = date_expected_monthfirst.date()
-                            except:
-                                date_expected_monthfirst = None
-                            if (date_expected_dayfirst == today) or (date_expected_monthfirst == today):
-                                date_expected = today
-                    except KeyError:
-                        date_expected = "None"
+                                try:
+                                    # Extra loop in case of double spacing in the reported date string
+                                    date_expected_raw = date_expected_raw.replace("  "," ")
+                                    date_expected = datetime.fromisoformat(
+                                        date_expected_raw
+                                    )
+                                except:
+                                    try:
+                                        # If it's not in ISO format, try to parse it with dateutil and try for the day being first
+                                        date_expected_dayfirst = parse(event_date_expected,dayfirst=True,fuzzy=True)
+                                        date_expected_dayfirst = date_expected_dayfirst.date()
+                                    except:
+                                        # If this fails, set this attempt to a static value
+                                        date_expected_dayfirst = datetime.date(1970,1,1)
+                                    try:
+                                        # Now try again with month first
+                                        date_expected_monthfirst = parse(date_expected_raw,monthfirst=True,fuzzy=True)
+                                        date_expected_monthfirst = date_expected_monthfirst.date()
+                                    except:
+                                        # Again, if this fails, set to a static value
+                                        date_expected_monthfirst = datetime.date(1970,1,1)
+                                    # Next, if either of the attempts are TODAY, assume the parcel has been delivered today. Delivered parcels aren't included for long
+                                    if (date_expected_dayfirst == today) or (date_expected_monthfirst == today):
+                                        date_expected = today
+                                    # If this isn't true, then check to see if either date is within 7 days, if so, then that's probably the correct date.
+                                    elif date_expected_dayfirst + datetime.timedelta(days=-7) <= today <= date_expected_dayfirst + datetime.timedelta(days=7):
+                                        date_expected = date_expected_dayfirst
+                                    elif date_expected_monthfirst + datetime.timedelta(days=-7) <= today <= date_expected_monthfirst + datetime.timedelta(days=7):
+                                        date_expected = date_expected_monthfirst
+                                    # If none of this returns a reasonable date, give up.
+                                    else:
+                                        date_expected = None
+                        except KeyError:
+                            date_expected = None
                 else:
-                    if "date_expected" in item:
-                        date_expected_raw = item["date_expected"]
+                    date_expected_raw = item["date_expected"]
+                    try:
+                        # Hopefully the date format is ISO..
+                        date_expected = datetime.fromisoformat(date_expected_raw)
+                    except:
                         try:
-                            date_expected = datetime.fromisoformat(date_expected_raw)
-                        except:
-                            try:
-                                # Extra loop in case of double spacing in the reported date string
-                                date_expected_raw = date_expected_raw.replace("  "," ")
-                                date_expected = datetime.fromisoformat(
-                                    date_expected_raw
-                                )
-                            except KeyError:
-                                date_expected = None
-                    else:
-                        date_expected_raw = "None"
+                            # Extra loop in case of double spacing in the reported date string
+                            date_expected_raw = date_expected_raw.replace("  "," ")
+                            date_expected = datetime.fromisoformat(
+                                date_expected_raw
+                            )
+                        except KeyError:
+                            date_expected = None
                 try:
                     date_expected_end_raw = item["date_expected_end"]
                     try:
@@ -279,12 +300,15 @@ class ActiveShipment(SensorEntity):
                             active_shipments.append(new_shipment)
                             traceable_active_shipments.append(new_shipment)
                 else:
-                    try:
-                        delivery_date = new_shipment.date_expected
-                        if delivery_date == today:
-                            delivered_today_shipments.append(new_shipment)
-                    except:
-                        pass
+                    if new_shipment.date_expected is None:
+                        continue
+                    else:
+                        try:
+                            delivery_date = new_shipment.date_expected
+                            if delivery_date == today:
+                                delivered_today_shipments.append(new_shipment)
+                        except:
+                            continue
             # catch if there are no active shipments
             if len(traceable_active_shipments) == 0:
                 if len(active_shipments) == 0:
