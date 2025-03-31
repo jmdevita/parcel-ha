@@ -81,7 +81,7 @@ async def test_active_shipment_sensor(hass):
         'event_location': 'Austin, TX, USA',
         'next_delivery_status': 'Delivery expecting a pickup by the recipient.',
         'next_delivery_carrier': 'Unknown',
-        'delivered_today': 0
+        'delivered_today': 0,
     }
 
 
@@ -112,7 +112,7 @@ async def test_recent_shipment_sensor_no_data(hass):
         'next_delivery_status': 'None',
         'number_of_active_parcels': 0,
         'parcels_arriving_today': 0,
-        'tracking_number': 'None'
+        'tracking_number': 'None',
     }
 
 
@@ -144,5 +144,5 @@ async def test_active_shipment_sensor_no_data(hass):
         'number_of_active_parcels': 0,
         'parcels_arriving_today': 0,
         'tracking_number': 'None',
-        'delivered_today': 0
+        'delivered_today': 0,
     }

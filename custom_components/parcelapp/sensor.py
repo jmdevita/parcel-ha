@@ -159,6 +159,7 @@ class ActiveShipment(SensorEntity):
             self._attr_state = "No parcels for now.."
             self._attr_icon = "mdi:close-circle"
             self._hass_custom_attributes = EMPTY_ATTRIBUTES
+            self._hass_custom_attributes["delivered_today"] = 0
         elif parcel_api_data["deliveries"]:
             data = parcel_api_data["deliveries"]
             carrier_codes = parcel_api_data["carrier_codes"]
