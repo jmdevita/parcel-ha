@@ -3,7 +3,7 @@ import json
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock
 from pathlib import Path
-from custom_components.parcelapp.sensor import RecentShipment, ActiveShipment
+from custom_components.parcelapp.sensor import RecentShipment, ActiveShipment, CollectionShipment
 from custom_components.parcelapp.coordinator import ParcelUpdateCoordinator
 
 # Load the fixture data
@@ -83,6 +83,38 @@ async def test_active_shipment_sensor(hass):
         'next_delivery_carrier': 'Unknown'
     }
 
+@pytest.mark.asyncio
+async def test_collectable_shipment_sensor(hass):
+    """Test the ActiveShipment sensor with data from the recent.json fixture."""
+
+    # Modify Date Expected to be pertinent to the test
+    yesterday = datetime.now() + timedelta(days=-1)
+    recent_collectable_data = recent_data
+    del recent_collectable_data["deliveries"][0]["date_expected"]
+    recent_collectable_data["deliveries"][0]["events"][0]["date"] = datetime.strftime(yesterday,"%A, %B %-d, %Y %-I:%M %p")
+
+    # Mock the coordinator
+    mock_coordinator = AsyncMock(spec=ParcelUpdateCoordinator)
+    mock_coordinator.data = recent_collectable_data
+
+    # Initialize the ActiveShipment sensor
+    sensor = CollectionShipment(mock_coordinator)
+
+    # Call async_update to fetch data
+    await sensor.async_update()
+
+    # Assert the state and attributes
+    assert sensor.state == 1
+    assert sensor.extra_state_attributes == {
+        'collectable_shipments': [
+            {
+            "description": "Wireless Mouse Set",
+            "location": "Austin, TX, USA",
+            # This is temporary until we add the parsing function
+            "delivered": datetime.strftime(yesterday,"%A, %B %-d, %Y %-I:%M %p"),
+            }
+        ],
+    }
 
 @pytest.mark.asyncio
 async def test_recent_shipment_sensor_no_data(hass):
@@ -143,4 +175,24 @@ async def test_active_shipment_sensor_no_data(hass):
         'number_of_active_parcels': 0,
         'parcels_arriving_today': 0,
         'tracking_number': 'None'
+    }
+
+@pytest.mark.asyncio
+async def test_collection_shipment_sensor_no_data(hass):
+    """Test the CollectionShipment sensor when no data is available."""
+
+    # Mock the coordinator with no data
+    mock_coordinator = AsyncMock(spec=ParcelUpdateCoordinator)
+    mock_coordinator.data = no_data
+
+    # Initialize the RecentShipment sensor
+    sensor = CollectionShipment(mock_coordinator)
+
+    # Call async_update to fetch data
+    await sensor.async_update()
+
+    # Assert the state and attributes
+    assert sensor.state == 0
+    assert sensor.extra_state_attributes == {
+        'collectable_shipments': [],
     }

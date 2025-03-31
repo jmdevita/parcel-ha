@@ -447,6 +447,11 @@ class CollectionShipment(SensorEntity):
             self._hass_custom_attributes = {                
                 "collectable_shipments": collectable_shipments,
             }
+        else:
+            self._attr_state = 0
+            self._hass_custom_attributes = {                
+                "collectable_shipments": collectable_shipments,
+            }
 
 class RawShipmentData(SensorEntity):
     """Representation of a sensor that fetches the raw data from the API."""
