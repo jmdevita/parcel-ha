@@ -20,6 +20,7 @@ from .const import (
     EMPTY_ATTRIBUTES,
 )
 from .coordinator import ParcelConfigEntry, ParcelUpdateCoordinator
+from .utils import dateparse
 
 PLATFORMS = [Platform.SENSOR]
 _LOGGER = logging.getLogger(__name__)
@@ -181,40 +182,18 @@ class ActiveShipment(SensorEntity):
                 # We try to parse the dates for use later
                 try:
                     date_expected_raw = item["date_expected"]
-                    try:
-                        date_expected = datetime.fromisoformat(date_expected_raw)
-                    except:
-                        try:
-                            # Extra loop in case of double spacing in the reported date string
-                            date_expected_raw = date_expected_raw.replace("  "," ")
-                            date_expected = datetime.fromisoformat(
-                                date_expected_raw
-                            )
-                        except KeyError:
-                            date_expected = None
+                    date_expected = dateparse(date_expected_raw)
                 except KeyError:
                     date_expected = None
                 try:
                     date_expected_end_raw = item["date_expected_end"]
-                    try:
-                        date_expected_end = datetime.fromisoformat(
-                            date_expected_end_raw
-                        )
-                    except:
-                        try:
-                            # Extra loop in case of double spacing in the reported date string
-                            date_expected_end_raw = date_expected_end_raw.replace("  "," ")
-                            date_expected_end = datetime.fromisoformat(
-                                date_expected_end_raw
-                            )
-                        except KeyError:
-                            date_expected_end = None
+                    date_expected_end = dateparse(date_expected_end_raw)
                 except KeyError:
                     date_expected_end = None
                 try:
                     timestamp_expected_raw = item["timestamp_expected"]
                     try:
-                        timestamp_expected = datetime.fromisoformat(
+                        timestamp_expected = datetime.fromtimestamp(
                             timestamp_expected_raw
                         )
                     except KeyError:
@@ -224,7 +203,7 @@ class ActiveShipment(SensorEntity):
                 try:
                     timestamp_expected_end_raw = item["timestamp_expected_end"]
                     try:
-                        timestamp_expected_end = datetime.fromisoformat(
+                        timestamp_expected_end = datetime.fromtimestamp(
                             timestamp_expected_end_raw
                         )
                     except KeyError:
@@ -250,7 +229,7 @@ class ActiveShipment(SensorEntity):
                         active_shipments.append(new_shipment)
                     else:
                         # Build a list of active shipments that have a date_expected key which is today or in the future
-                        if today <= new_shipment.date_expected.date():
+                        if today <= new_shipment.date_expected:
                             active_shipments.append(new_shipment)
                             traceable_active_shipments.append(new_shipment)
             # catch if there are no active shipments
@@ -267,7 +246,7 @@ class ActiveShipment(SensorEntity):
                     traceable_active_shipments.sort(key=lambda x: x.date_expected)
                     next_traceable_shipment = traceable_active_shipments[0]
                     next_delivery_date = next_traceable_shipment.date_expected
-                    days_until_next_delivery = (next_delivery_date.date() - today).days
+                    days_until_next_delivery = (next_delivery_date - today).days
                 except ValueError:
                     # Treat as unknown but something IS coming
                     next_traceable_shipment = EMPTY_SHIPMENT
@@ -288,7 +267,7 @@ class ActiveShipment(SensorEntity):
             self._attr_icon = icon
             # Count the number of parcels arriving today
             arriving_today = sum(
-                shipment.date_expected.date() == today
+                shipment.date_expected == today
                 for shipment in traceable_active_shipments
             )
             # Set up the verbose text
@@ -333,7 +312,8 @@ class ActiveShipment(SensorEntity):
                 except KeyError:
                     event = "Unknown"
                 try:
-                    event_date = next_traceable_shipment.events[0]["date"]
+                    event_date_raw = next_traceable_shipment.events[0]["date"]
+                    event_date = dateparse(event_date_raw)
                 except KeyError:
                     event_date = "Unknown"
                 try:
