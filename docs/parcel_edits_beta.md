@@ -18,7 +18,7 @@ This guide explains how to set up and use the ParcelApp integration in Home Assi
 
 ---
 
-## Step 2: Add a Parcel Using Home Assistant
+## Step 2: Example: Add a Parcel Using Home Assistant
 
 1. Open Home Assistant and navigate to **Developer Tools**.
 2. Click on the **Services** tab.
@@ -26,7 +26,7 @@ This guide explains how to set up and use the ParcelApp integration in Home Assi
 4. Fill out the required fields:
    - **Name**: The name of the package (e.g., "My Package").
    - **Number**: The tracking number for the package.
-   - **Courier**: The 3-digit courier code (e.g., `ups` for UPS).
+   - **Courier**: The courier code (e.g., `ups` for UPS). Found in [this link](https://api.parcel.app/external/supported_carriers.json)
 5. Fire the service.
 
 ---

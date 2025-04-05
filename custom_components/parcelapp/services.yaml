@@ -37,7 +37,7 @@ edit_parcel:
       selector:
         text:
     tracking_number:
-      example: "0987654321"
+      example: "1234567890"
       required: true
       selector:
         text:

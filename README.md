@@ -51,6 +51,9 @@ Once the integration is set up, it will create a sensor entity named sensor.par
 
 From v1.0.0 a second sensor entity is added, called sensor.parcel_active_shipment. It's intended to be used to provide information about when the next shipment is due, and how many shipments are currently actively being tracked. It has the following attributes:
 
+### Beta Features (BETA)
+This integration includes beta features for adding, editing, and deleting parcels. For more details, refer to the [Beta Features Documentation](docs/parcel_edits_beta.md).
+
 ### Sensor Attributes
 -   `Number_of_active_parcels`: The number of active shipment being tracked.
 -   `parcels_arriving_today`: The number of shipment with an ETA of the current date.
