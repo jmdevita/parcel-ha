@@ -1,7 +1,6 @@
 """Integration for Parcel tracking sensor."""
 
 from datetime import datetime, timedelta, date
-from dateutil.parser import parse
 import logging
 from typing import Any
 
@@ -21,6 +20,7 @@ from .const import (
     EMPTY_ATTRIBUTES,
 )
 from .coordinator import ParcelConfigEntry, ParcelUpdateCoordinator
+from .utils import dateparse
 
 PLATFORMS = [Platform.SENSOR]
 _LOGGER = logging.getLogger(__name__)
@@ -90,11 +90,13 @@ class RecentShipment(SensorEntity):
             except KeyError:
                 tracking_number = "Unknown"
             try:
-                date_expected = data[0]["date_expected"]
+                date_expected_raw = data[0]["date_expected"]
+                date_expected = dateparse(date_expected_raw)
             except KeyError:
                 date_expected = "Unknown"
             try:
-                event_date = data[0]["events"][0]["date"]
+                event_date_raw = data[0]["events"][0]["date"]
+                event_date = dateparse(event_date_raw)
             except KeyError:
                 event_date = "Unknown"
             try:
@@ -182,88 +184,28 @@ class ActiveShipment(SensorEntity):
                 except:
                     extra_information = None
                 # We try to parse the dates for use later
-                # First, if there is no date expected, we branch
-                if "date_expected" not in item:
-                    # If the status code is 0 or 3, the parcel has been delivered, and we will have to try to recreate the delivery date
-                    date_expected = None
-                    if status_code in [0,3]:
-                        try:
-                            # Take the latest event date that _should_ be delivery
-                            event_date_expected = events[0]["date"]
-                            try:
-                                # Hopefully the date format is ISO..
-                                date_expected = datetime.datetime.fromisoformat(event_date_expected)
-                                date_expected = date_expected.date()
-                            except:
-                                try:
-                                    # Extra loop in case of double spacing in the reported date string
-                                    date_expected_raw = date_expected_raw.replace("  "," ")
-                                    date_expected = datetime.fromisoformat(
-                                        date_expected_raw
-                                    )
-                                except:
-                                    try:
-                                        # If it's not in ISO format, try to parse it with dateutil and try for the day being first
-                                        date_expected_dayfirst = parse(event_date_expected,dayfirst=True,fuzzy=True)
-                                        date_expected_dayfirst = date_expected_dayfirst.date()
-                                    except:
-                                        # If this fails, set this attempt to a static value
-                                        date_expected_dayfirst = datetime.date(1970,1,1)
-                                    try:
-                                        # Now try again with month first
-                                        date_expected_monthfirst = parse(date_expected_raw,monthfirst=True,fuzzy=True)
-                                        date_expected_monthfirst = date_expected_monthfirst.date()
-                                    except:
-                                        # Again, if this fails, set to a static value
-                                        date_expected_monthfirst = datetime.date(1970,1,1)
-                                    # Next, if either of the attempts are TODAY, assume the parcel has been delivered today. Delivered parcels aren't included for long
-                                    if (date_expected_dayfirst == today) or (date_expected_monthfirst == today):
-                                        date_expected = today
-                                    # If this isn't true, then check to see if either date is within 7 days, if so, then that's probably the correct date.
-                                    elif date_expected_dayfirst + datetime.timedelta(days=-7) <= today <= date_expected_dayfirst + datetime.timedelta(days=7):
-                                        date_expected = date_expected_dayfirst
-                                    elif date_expected_monthfirst + datetime.timedelta(days=-7) <= today <= date_expected_monthfirst + datetime.timedelta(days=7):
-                                        date_expected = date_expected_monthfirst
-                                    # If none of this returns a reasonable date, give up.
-                                    else:
-                                        date_expected = None
-                        except KeyError:
-                            date_expected = None
+                # If the status code is 0 or 3, or if there is otherwise no date expected, we will have to try to recreate the eta/delivery date
+                if (status_code in [0,3]) or ("date_expected" not in item):
+                    try:
+                        # Take the latest event date that _should_ be delivery/eta
+                        date_expected_raw = events[0]["date"]
+                    except:
+                        date_expected_raw = None
                 else:
                     date_expected_raw = item["date_expected"]
-                    try:
-                        # Hopefully the date format is ISO..
-                        date_expected = datetime.fromisoformat(date_expected_raw)
-                    except:
-                        try:
-                            # Extra loop in case of double spacing in the reported date string
-                            date_expected_raw = date_expected_raw.replace("  "," ")
-                            date_expected = datetime.fromisoformat(
-                                date_expected_raw
-                            )
-                        except KeyError:
-                            date_expected = None
+                try:                    
+                    date_expected = dateparse(date_expected_raw)
+                except KeyError:
+                    date_expected = None
                 try:
                     date_expected_end_raw = item["date_expected_end"]
-                    try:
-                        date_expected_end = datetime.fromisoformat(
-                            date_expected_end_raw
-                        )
-                    except:
-                        try:
-                            # Extra loop in case of double spacing in the reported date string
-                            date_expected_end_raw = date_expected_end_raw.replace("  "," ")
-                            date_expected_end = datetime.fromisoformat(
-                                date_expected_end_raw
-                            )
-                        except KeyError:
-                            date_expected_end = None
+                    date_expected_end = dateparse(date_expected_end_raw)
                 except KeyError:
                     date_expected_end = None
                 try:
                     timestamp_expected_raw = item["timestamp_expected"]
                     try:
-                        timestamp_expected = datetime.fromisoformat(
+                        timestamp_expected = datetime.fromtimestamp(
                             timestamp_expected_raw
                         )
                     except KeyError:
@@ -273,7 +215,7 @@ class ActiveShipment(SensorEntity):
                 try:
                     timestamp_expected_end_raw = item["timestamp_expected_end"]
                     try:
-                        timestamp_expected_end = datetime.fromisoformat(
+                        timestamp_expected_end = datetime.fromtimestamp(
                             timestamp_expected_end_raw
                         )
                     except KeyError:
@@ -293,25 +235,20 @@ class ActiveShipment(SensorEntity):
                     events=events,
                 )
                 shipments.append(new_shipment)
-                # Build the active shipments list, but remove any delivered parcels and any active parcles with no date_expected key
-                if new_shipment.status_code != 0:
-                    if new_shipment.date_expected is None:
-                        active_shipments.append(new_shipment)
-                    else:
+                # Build the active shipments list, but remove any delivered parcels, including collectable ones
+                # Maybe frozen parcels should not be treated as active either?
+                if new_shipment.status_code not in [0,3]:
+                    # if new_shipment.date_expected is None:
+                    active_shipments.append(new_shipment)
+                    if new_shipment.date_expected is not None:
                         # Build a list of active shipments that have a date_expected key which is today or in the future
-                        if today <= new_shipment.date_expected.date():
-                            active_shipments.append(new_shipment)
+                        if today <= new_shipment.date_expected:                     
                             traceable_active_shipments.append(new_shipment)
-                else:
-                    if new_shipment.date_expected is None:
-                        continue
-                    else:
-                        try:
-                            delivery_date = new_shipment.date_expected
-                            if delivery_date == today:
-                                delivered_today_shipments.append(new_shipment)
-                        except:
-                            continue
+                elif new_shipment.status_code == 0:
+                    if new_shipment.date_expected is not None:
+                        if new_shipment.date_expected == today:
+                            delivered_today_shipments.append(new_shipment)
+                    
             # catch if there are no active shipments
             if len(traceable_active_shipments) == 0:
                 if len(active_shipments) == 0:
@@ -326,7 +263,7 @@ class ActiveShipment(SensorEntity):
                     traceable_active_shipments.sort(key=lambda x: x.date_expected)
                     next_traceable_shipment = traceable_active_shipments[0]
                     next_delivery_date = next_traceable_shipment.date_expected
-                    days_until_next_delivery = (next_delivery_date.date() - today).days
+                    days_until_next_delivery = (next_delivery_date - today).days
                 except ValueError:
                     # Treat as unknown but something IS coming
                     next_traceable_shipment = EMPTY_SHIPMENT
@@ -347,7 +284,7 @@ class ActiveShipment(SensorEntity):
             self._attr_icon = icon
             # Count the number of parcels arriving today
             arriving_today = sum(
-                shipment.date_expected.date() == today
+                shipment.date_expected == today
                 for shipment in traceable_active_shipments
             )
             # Set up the verbose text
@@ -392,7 +329,8 @@ class ActiveShipment(SensorEntity):
                 except KeyError:
                     event = "Unknown"
                 try:
-                    event_date = next_traceable_shipment.events[0]["date"]
+                    event_date_raw = next_traceable_shipment.events[0]["date"]
+                    event_date = dateparse(event_date_raw)
                 except KeyError:
                     event_date = "Unknown"
                 try:
@@ -416,7 +354,7 @@ class ActiveShipment(SensorEntity):
             except KeyError:
                 next_delivery_carrier = "Unknown"
             delivered_today = len(delivered_today_shipments)
-            # Set the attributes
+          # Set the attributes
             self._attr_state = verbose
             self._hass_custom_attributes = {
                 "number_of_active_parcels": len(active_shipments),
