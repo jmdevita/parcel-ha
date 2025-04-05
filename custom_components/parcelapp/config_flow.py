@@ -28,10 +28,11 @@ class ParcelConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> dict[str, Any]:
-        """Handle the user step to collect the API key."""
+        """Handle the user step to collect the API key and optional account token."""
         if user_input is not None:
-            # User submitted the form with API Key
+            # User submitted the form with API Key and optional Account Token
             api_key = user_input["api_key"]
+            account_token = user_input.get("account_token", None)
 
             # Validate the API key by making a request to the API
             try:
@@ -44,7 +45,7 @@ class ParcelConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     # API key is valid, proceed to store the configuration
                     return self.async_create_entry(
                         title="Parcel",
-                        data={"api_key": api_key},
+                        data={"api_key": api_key, "account_token": account_token},
                     )
                 self._error = "Invalid API Key"
                 return self.async_show_form(
@@ -68,10 +69,11 @@ class ParcelConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     def _create_schema(self) -> vol.Schema:
-        """Create the form schema for collecting the API key."""
+        """Create the form schema for collecting the API key and optional account token."""
         return vol.Schema(
             {
                 vol.Required("api_key", default=""): str,
+                vol.Optional("account_token", default=""): str,
             }
         )
 
@@ -102,18 +104,35 @@ class ParcelOptionsFlow(config_entries.OptionsFlow):
         if user_input is not None:
             # Validate the new API key if it was changed
             new_api_key = user_input.get("api_key")
-            if new_api_key != self.config_entry.data.get("api_key"):
+            new_account_token = user_input.get("account_token")
+
+            # Check if the API key or account token has changed
+            if new_api_key != self.config_entry.data.get(
+                "api_key"
+            ) or new_account_token != self.config_entry.data.get("account_token"):
                 try:
-                    headers = {"api-key": new_api_key}
-                    response = await self.hass.async_add_executor_job(
-                        self._validate_api_key, headers
-                    )
-                    if response.status_code != 200:
-                        return self.async_show_form(
-                            step_id="init",
-                            data_schema=self._create_schema(),
-                            errors={"base": "invalid_api_key"},
+                    # Validate the API key if it has changed
+                    if new_api_key != self.config_entry.data.get("api_key"):
+                        headers = {"api-key": new_api_key}
+                        response = await self.hass.async_add_executor_job(
+                            self._validate_api_key, headers
                         )
+                        if response.status_code != 200:
+                            return self.async_show_form(
+                                step_id="init",
+                                data_schema=self._create_schema(),
+                                errors={"base": "invalid_api_key"},
+                            )
+
+                    # Update the config entry with the new values
+                    self.hass.config_entries.async_update_entry(
+                        self.config_entry,
+                        data={
+                            "api_key": new_api_key,
+                            "account_token": new_account_token,
+                        },
+                    )
+
                 except requests.exceptions.RequestException:
                     return self.async_show_form(
                         step_id="init",
@@ -121,23 +140,22 @@ class ParcelOptionsFlow(config_entries.OptionsFlow):
                         errors={"base": "cannot_connect"},
                     )
 
-                # Update the config entry with the new API key
-                self.hass.config_entries.async_update_entry(
-                    self.config_entry, data={"api_key": new_api_key}
-                )
-
             # Save the updated options
             return self.async_create_entry(data=user_input)
 
         return self.async_show_form(step_id="init", data_schema=self._create_schema())
 
     def _create_schema(self) -> vol.Schema:
-        """Create the form schema for updating the API key."""
+        """Create the form schema for updating the API key and optional account token."""
         return vol.Schema(
             {
                 vol.Required(
                     "api_key",
                     default=self.config_entry.data.get("api_key", ""),
+                ): str,
+                vol.Optional(
+                    "account_token",
+                    default=self.config_entry.data.get("account_token", ""),
                 ): str,
             }
         )

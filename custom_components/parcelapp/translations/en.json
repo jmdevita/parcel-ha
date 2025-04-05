@@ -1,13 +1,74 @@
 {
     "config": {
-      "step": {
-        "user": {
-          "title": "Parcel Configuration",
-          "description": "Set up Parcel tracking for parcelapp",
-          "data": {
-            "api_key": "API Key (Required)"
-          }
+        "step": {
+            "user": {
+                "title": "Parcel Configuration",
+                "description": "Set up Parcel tracking for parcelapp",
+                "data": {
+                    "api_key": "API Key (Required)",
+                    "account_token": "Account Token (Optional) | BETA"
+                }
+            }
         }
-      }
+    },
+    "services": {
+        "add_parcel": {
+            "name": "Add Parcel",
+            "description": "Add a new parcel to ParcelApp for tracking",
+            "fields": {
+                "parcel_name": {
+                    "name": "Parcel Name",
+                    "description": "The name of the parcel to track"
+                },
+                "tracking_number": {
+                    "name": "Tracking Number",
+                    "description": "The tracking number of the parcel"
+                },
+                "courier": {
+                    "name": "Courier",
+                    "description": "The courier service handling the parcel. Refer to the list of supported carrier keys, for example, for ACS Courier the key is 'acs'. The list is available at https://api.parcel.app/external/supported_carriers.json."
+                }
+            }
+        },
+        "delete_parcel": {
+            "name": "Delete Parcel",
+            "description": "Delete a parcel from ParcelApp",
+            "fields": {
+                "tracking_number": {
+                    "name": "Tracking Number",
+                    "description": "The tracking number of the parcel to delete"
+                },
+                "type": {
+                    "name": "Courier",
+                    "description": "The courier service handling the parcel. Refer to the list of supported carrier keys, for example, for ACS Courier the key is 'acs'. The list is available at https://api.parcel.app/external/supported_carriers.json."
+                }
+            }
+        },
+        "edit_parcel": {
+            "name": "Edit Parcel",
+            "description": "Edit an existing parcel in ParcelApp",
+            "fields": {
+                "parcel_name": {
+                    "name": "Parcel Name",
+                    "description": "The updated name of the parcel"
+                },
+                "tracking_number": {
+                    "name": "Tracking Number",
+                    "description": "The updated tracking number of the parcel"
+                },
+                "courier": {
+                    "name": "Courier",
+                    "description": "The updated courier service handling the parcel. Refer to the list of supported carrier keys, for example, for ACS Courier the key is 'acs'. The list is available at https://api.parcel.app/external/supported_carriers.json."
+                },
+                "old_number": {
+                    "name": "Old Tracking Number",
+                    "description": "The original tracking number of the parcel"
+                },
+                "old_type": {
+                    "name": "Old Type",
+                    "description": "The original type of the parcel (e.g., package)"
+                }
+            }
+        }
     }
-  }
+}
