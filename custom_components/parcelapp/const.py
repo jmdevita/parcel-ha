@@ -79,3 +79,6 @@ EMPTY_ATTRIBUTES = {
 PARCEL_NAME = "parcel_name"
 TRACKING_NUMBER = "tracking_number"
 COURIER = "courier"
+TYPE = "type"
+OLD_NUMBER = "oldNumber"
+OLD_TYPE = "oldType"

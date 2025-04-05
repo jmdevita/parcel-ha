@@ -15,3 +15,44 @@ add_parcel:
       required: true
       selector:
         text:
+
+delete_parcel:
+  fields:
+    tracking_number:
+      example: "1234567890"
+      required: true
+      selector:
+        text:
+    type:
+      example: "package"
+      required: true
+      selector:
+        text:
+
+edit_parcel:
+  fields:
+    parcel_name:
+      example: "Updated Parcel Name"
+      required: true
+      selector:
+        text:
+    tracking_number:
+      example: "0987654321"
+      required: true
+      selector:
+        text:
+    courier:
+      example: "fedex"
+      required: true
+      selector:
+        text:
+    old_number:
+      example: "1234567890"
+      required: true
+      selector:
+        text:
+    old_type:
+      example: "fedex"
+      required: true
+      selector:
+        text:
