@@ -20,6 +20,7 @@ from .const import (
     EMPTY_ATTRIBUTES,
 )
 from .coordinator import ParcelConfigEntry, ParcelUpdateCoordinator
+from .utils import dateparse
 
 PLATFORMS = [Platform.SENSOR]
 _LOGGER = logging.getLogger(__name__)
@@ -38,6 +39,7 @@ async def async_setup_entry(
         [
             RecentShipment(coordinator),
             ActiveShipment(coordinator),
+            CollectionShipment(coordinator),
             RawShipmentData(coordinator),
         ],
         update_before_add=True,
@@ -88,11 +90,13 @@ class RecentShipment(SensorEntity):
             except KeyError:
                 tracking_number = "Unknown"
             try:
-                date_expected = data[0]["date_expected"]
+                date_expected_raw = data[0]["date_expected"]
+                date_expected = dateparse(date_expected_raw)
             except KeyError:
                 date_expected = "Unknown"
             try:
-                event_date = data[0]["events"][0]["date"]
+                event_date_raw = data[0]["events"][0]["date"]
+                event_date = dateparse(event_date_raw)
             except KeyError:
                 event_date = "Unknown"
             try:
@@ -151,12 +155,14 @@ class ActiveShipment(SensorEntity):
         shipments = []
         active_shipments = []
         traceable_active_shipments = []
+        delivered_today_shipments = []
         today = date.today()
 
         if parcel_api_data["deliveries"] == []:
             self._attr_state = "No parcels for now.."
             self._attr_icon = "mdi:close-circle"
             self._hass_custom_attributes = EMPTY_ATTRIBUTES
+            self._hass_custom_attributes["delivered_today"] = 0
         elif parcel_api_data["deliveries"]:
             data = parcel_api_data["deliveries"]
             carrier_codes = parcel_api_data["carrier_codes"]
@@ -178,42 +184,28 @@ class ActiveShipment(SensorEntity):
                 except:
                     extra_information = None
                 # We try to parse the dates for use later
-                try:
-                    date_expected_raw = item["date_expected"]
+                # If the status code is 0 or 3, or if there is otherwise no date expected, we will have to try to recreate the eta/delivery date
+                if (status_code in [0,3]) or ("date_expected" not in item):
                     try:
-                        date_expected = datetime.fromisoformat(date_expected_raw)
+                        # Take the latest event date that _should_ be delivery/eta
+                        date_expected_raw = events[0]["date"]
                     except:
-                        try:
-                            # Extra loop in case of double spacing in the reported date string
-                            date_expected_raw = date_expected_raw.replace("  "," ")
-                            date_expected = datetime.fromisoformat(
-                                date_expected_raw
-                            )
-                        except KeyError:
-                            date_expected = None
+                        date_expected_raw = None
+                else:
+                    date_expected_raw = item["date_expected"]
+                try:                    
+                    date_expected = dateparse(date_expected_raw)
                 except KeyError:
                     date_expected = None
                 try:
                     date_expected_end_raw = item["date_expected_end"]
-                    try:
-                        date_expected_end = datetime.fromisoformat(
-                            date_expected_end_raw
-                        )
-                    except:
-                        try:
-                            # Extra loop in case of double spacing in the reported date string
-                            date_expected_end_raw = date_expected_end_raw.replace("  "," ")
-                            date_expected_end = datetime.fromisoformat(
-                                date_expected_end_raw
-                            )
-                        except KeyError:
-                            date_expected_end = None
+                    date_expected_end = dateparse(date_expected_end_raw)
                 except KeyError:
                     date_expected_end = None
                 try:
                     timestamp_expected_raw = item["timestamp_expected"]
                     try:
-                        timestamp_expected = datetime.fromisoformat(
+                        timestamp_expected = datetime.fromtimestamp(
                             timestamp_expected_raw
                         )
                     except KeyError:
@@ -223,7 +215,7 @@ class ActiveShipment(SensorEntity):
                 try:
                     timestamp_expected_end_raw = item["timestamp_expected_end"]
                     try:
-                        timestamp_expected_end = datetime.fromisoformat(
+                        timestamp_expected_end = datetime.fromtimestamp(
                             timestamp_expected_end_raw
                         )
                     except KeyError:
@@ -243,15 +235,20 @@ class ActiveShipment(SensorEntity):
                     events=events,
                 )
                 shipments.append(new_shipment)
-                # Build the active shipments list, but remove any delivered parcels and any active parcles with no date_expected key
-                if new_shipment.status_code != 0:
-                    if new_shipment.date_expected is None:
-                        active_shipments.append(new_shipment)
-                    else:
+                # Build the active shipments list, but remove any delivered parcels, including collectable ones
+                # Maybe frozen parcels should not be treated as active either?
+                if new_shipment.status_code not in [0,3]:
+                    # if new_shipment.date_expected is None:
+                    active_shipments.append(new_shipment)
+                    if new_shipment.date_expected is not None:
                         # Build a list of active shipments that have a date_expected key which is today or in the future
-                        if today <= new_shipment.date_expected.date():
-                            active_shipments.append(new_shipment)
+                        if today <= new_shipment.date_expected:                     
                             traceable_active_shipments.append(new_shipment)
+                elif new_shipment.status_code == 0:
+                    if new_shipment.date_expected is not None:
+                        if new_shipment.date_expected == today:
+                            delivered_today_shipments.append(new_shipment)
+                    
             # catch if there are no active shipments
             if len(traceable_active_shipments) == 0:
                 if len(active_shipments) == 0:
@@ -266,7 +263,7 @@ class ActiveShipment(SensorEntity):
                     traceable_active_shipments.sort(key=lambda x: x.date_expected)
                     next_traceable_shipment = traceable_active_shipments[0]
                     next_delivery_date = next_traceable_shipment.date_expected
-                    days_until_next_delivery = (next_delivery_date.date() - today).days
+                    days_until_next_delivery = (next_delivery_date - today).days
                 except ValueError:
                     # Treat as unknown but something IS coming
                     next_traceable_shipment = EMPTY_SHIPMENT
@@ -287,7 +284,7 @@ class ActiveShipment(SensorEntity):
             self._attr_icon = icon
             # Count the number of parcels arriving today
             arriving_today = sum(
-                shipment.date_expected.date() == today
+                shipment.date_expected == today
                 for shipment in traceable_active_shipments
             )
             # Set up the verbose text
@@ -324,17 +321,25 @@ class ActiveShipment(SensorEntity):
             # Catch the error codes before returning the days_until_delivery
             if days_until_next_delivery < 0:
                 days_until_next_delivery = RETURN_CODES[days_until_next_delivery]
-            try:
-                event = next_traceable_shipment.events[0]["event"]
-            except KeyError:
+            # Retrieve further details of the next shipment if they exist
+            next_traceable_shipment_events = next_traceable_shipment.events
+            if len(next_traceable_shipment_events) > 0:
+                try:
+                    event = next_traceable_shipment.events[0]["event"]
+                except KeyError:
+                    event = "Unknown"
+                try:
+                    event_date_raw = next_traceable_shipment.events[0]["date"]
+                    event_date = dateparse(event_date_raw)
+                except KeyError:
+                    event_date = "Unknown"
+                try:
+                    event_location = next_traceable_shipment.events[0]["location"]
+                except KeyError:
+                    event_location = "Unknown"
+            else:
                 event = "Unknown"
-            try:
-                event_date = next_traceable_shipment.events[0]["date"]
-            except KeyError:
                 event_date = "Unknown"
-            try:
-                event_location = next_traceable_shipment.events[0]["location"]
-            except KeyError:
                 event_location = "Unknown"
             try:
                 next_delivery_status = DELIVERY_STATUS_CODES[
@@ -348,7 +353,8 @@ class ActiveShipment(SensorEntity):
                 ]
             except KeyError:
                 next_delivery_carrier = "Unknown"
-            # Set the attributes
+            delivered_today = len(delivered_today_shipments)
+          # Set the attributes
             self._attr_state = verbose
             self._hass_custom_attributes = {
                 "number_of_active_parcels": len(active_shipments),
@@ -362,8 +368,89 @@ class ActiveShipment(SensorEntity):
                 "event_location": event_location,
                 "next_delivery_status": next_delivery_status,
                 "next_delivery_carrier": next_delivery_carrier,
+                "delivered_today": delivered_today,
             }
 
+class CollectionShipment(SensorEntity):
+    """Representation of a sensor that reports any parcels currently ready for collection."""
+
+    # Disabled by default
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(self, coordinator: ParcelUpdateCoordinator) -> None:
+        """Initialize the sensor."""
+        self.coordinator = coordinator
+        self._hass_custom_attributes = {}
+        self._attr_name = "Parcel Collection Shipment"
+        self._attr_unique_id = "Parcel_Collection_Shipment"
+        self._globalid = "Parcel_Collection_Shipment"
+        self._attr_icon = "mdi:package-up"
+        self._attr_state = None
+
+    @property
+    def state(self) -> Any:
+        """Return the current state of the sensor."""
+        return self._attr_state
+
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes of the sensor."""
+        return self._hass_custom_attributes
+
+    async def async_update(self) -> None:
+        """Fetch the latest data from the coordinator."""
+        await self.coordinator.async_request_refresh()
+        parcel_api_data = self.coordinator.data
+        collectable_shipments = [] 
+
+        if parcel_api_data["deliveries"]:
+            data = parcel_api_data["deliveries"]
+            for item in data:
+                # These are the mandatory properties
+                carrier_code = item["carrier_code"]
+                description = item["description"]
+                status_code = item["status_code"]
+                tracking_number = item["tracking_number"]
+                # These are the optional properties
+                # Events _should_ be present
+                try:
+                    events = item["events"]
+                except KeyError:
+                    events = "None"
+                # The collection location _should_ be the location in the latest event
+                try:
+                    location = events[0]["location"]
+                except:
+                    location = "Unknown"
+                # The collection date/time _should_ be the date in the latest event
+                # For this version this will only return the datetime as given by the carrier
+                try:
+                    delivered = events[0]["date"]
+                except:
+                    delivered = "Unknown"
+                if status_code == 3:
+                    new_shipment = {
+                        "description": description,
+                        "location": location,
+                        "delivered": delivered,
+                    }
+                    collectable_shipments.append(new_shipment)
+            collectables = len(collectable_shipments)
+            self._attr_state = collectables
+            icon = "mdi:package-up"
+            if 0 < collectables < 10:
+                icon = "mdi:numeric-" + str(collectables) + "-circle"
+            elif 10 <= collectables:
+                icon = "mdi:numeric-9-plus-circle"
+            self._attr_icon = icon
+            self._hass_custom_attributes = {                
+                "collectable_shipments": collectable_shipments,
+            }
+        else:
+            self._attr_state = 0
+            self._hass_custom_attributes = {                
+                "collectable_shipments": collectable_shipments,
+            }
 
 class RawShipmentData(SensorEntity):
     """Representation of a sensor that fetches the raw data from the API."""

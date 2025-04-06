@@ -1,3 +1,8 @@
+[![Python package](https://github.com/jmdevita/parcel-ha/actions/workflows/pythonpackage.yaml/badge.svg?branch=main)](https://github.com/jmdevita/parcel-ha/actions/workflows/pythonpackage.yaml)
+[![Validate with hassfest](https://github.com/jmdevita/parcel-ha/actions/workflows/hassfest.yaml/badge.svg?branch=main)](https://github.com/jmdevita/parcel-ha/actions/workflows/hassfest.yaml)
+[![HACS Action](https://github.com/jmdevita/parcel-ha/actions/workflows/validate.yaml/badge.svg?branch=main)](https://github.com/jmdevita/parcel-ha/actions/workflows/validate.yaml)
+[![Latest Commit](https://badgen.net/github/last-commit/jmdevita/parcel-ha/main)](https://github.com/jmdevita/parcel-ha/commit/HEAD)
+
 Parcel App Integration for Home Assistant
 =====================================
 

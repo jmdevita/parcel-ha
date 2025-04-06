@@ -4,21 +4,11 @@
       {
         "carrier_code": "fedex",
         "description": "Wireless Mouse Set",
-        "status_code": 3,
+        "status_code": 2,
         "tracking_number": "8217400125612976",
         "extra_information": "FedEx SmartPost",
         "date_expected": "2023-03-05T00:00:00Z",
         "events": [
-          {
-            "event": "Delivered to Address",
-            "date": "Saturday, March 4, 2023 11:45 AM",
-            "location": "Austin, TX, USA"
-          },
-          {
-            "event": "Out for Delivery Attempt",
-            "date": "Friday, March 3, 2023 02:15 PM",
-            "location": "Round Rock, TX, USA"
-          },
           {
             "event": "Departure Scan",
             "date": "Friday, March 3, 2023 12:00 PM",
