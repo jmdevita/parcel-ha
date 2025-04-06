@@ -9,6 +9,7 @@ from homeassistant.helpers import config_validation as cv, device_registry as dr
 
 from .const import DOMAIN
 from .coordinator import ParcelConfigEntry, ParcelUpdateCoordinator
+from .services import async_register_services
 
 PLATFORMS = [Platform.SENSOR]
 _LOGGER = logging.getLogger(__name__)
@@ -20,6 +21,7 @@ async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
 
     # Store integration data in hass.data
     hass.data[DOMAIN] = {}
+    await async_register_services(hass)
 
     return True
 
