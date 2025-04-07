@@ -11,6 +11,18 @@
             }
         }
     },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Update Parcel Configuration",
+                "description": "Update the API Key and Account Token for ParcelApp",
+                "data": {
+                    "api_key": "API Key (Required)",
+                    "account_token": "Account Token (Optional) | BETA"
+                }
+            }
+        }
+    },
     "services": {
         "add_parcel": {
             "name": "Add Parcel",
