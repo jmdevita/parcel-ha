@@ -1,3 +1,8 @@
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg)](https://github.com/hacs/integration)
+[![GH-release](https://img.shields.io/github/v/release/jmdevita/parcel-ha)](https://github.com/jmdevita/parcel-ha/releases)
+[![GH-downloads](https://img.shields.io/github/downloads/jmdevita/parcel-ha/total)](https://github.com/jmdevita/parcel-ha/releases)
+![GH-stars](https://img.shields.io/github/stars/jmdevita/parcel-ha?style=flat-square)
+\
 [![Python package](https://github.com/jmdevita/parcel-ha/actions/workflows/pythonpackage.yaml/badge.svg?branch=main)](https://github.com/jmdevita/parcel-ha/actions/workflows/pythonpackage.yaml)
 [![Validate with hassfest](https://github.com/jmdevita/parcel-ha/actions/workflows/hassfest.yaml/badge.svg?branch=main)](https://github.com/jmdevita/parcel-ha/actions/workflows/hassfest.yaml)
 [![HACS Action](https://github.com/jmdevita/parcel-ha/actions/workflows/validate.yaml/badge.svg?branch=main)](https://github.com/jmdevita/parcel-ha/actions/workflows/validate.yaml)
