@@ -185,11 +185,15 @@ class ActiveShipment(SensorEntity):
                     extra_information = None
                 # We try to parse the dates for use later
                 # If the status code is 0 or 3, or if there is otherwise no date expected, we will have to try to recreate the eta/delivery date
-                if (status_code in [0,3]) or ("date_expected" not in item):
-                    try:
-                        # Take the latest event date that _should_ be delivery/eta
-                        date_expected_raw = events[0]["date"]
-                    except:
+                # If the status code is 0 or 3, or if there is otherwise no date expected, we will have to try to recreate the eta/delivery date
+                if "date_expected" not in item:
+                    if (status_code in [0,3]):
+                        try:
+                            # Take the latest event date that _should_ be delivery/eta
+                            date_expected_raw = events[0]["date"]
+                        except:
+                            date_expected_raw = None
+                    else:
                         date_expected_raw = None
                 else:
                     date_expected_raw = item["date_expected"]
