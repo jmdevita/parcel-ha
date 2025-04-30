@@ -167,9 +167,18 @@ styles:
     - opacity: "0.5"
 ```
 
-<img src="parcel_button_card.png" alt="Example Card" width="250"/>
+<img src="/docs/images/parcel_button_card.png" alt="Example Button Card" width="250"/>
 
 You may want to modify the dimensions, opacity, etc to suit your tastes.
+
+### Community Cards
+Feel free to make a pull request with your template under docs/community_templates !
+
+[Auto-Entities Card](/docs/community_templates/auto_entities.yaml) by @robbinonline
+<img src="/docs/images/parcel_bubble_card.png" alt="Example Bubble Card" width="250"/>
+
+[Auto-Entities Card](/docs/community_templates/bubble_card.yaml) by @georgefahmy
+<img src="/docs/images/parcel_auto_entities_card.png" alt="Example Bubble Card" width="250"/>
 
 Development
 -----------
