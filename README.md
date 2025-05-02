@@ -1,3 +1,8 @@
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg)](https://github.com/hacs/integration)
+[![GH-release](https://img.shields.io/github/v/release/jmdevita/parcel-ha)](https://github.com/jmdevita/parcel-ha/releases)
+[![GH-downloads](https://img.shields.io/github/downloads/jmdevita/parcel-ha/total)](https://github.com/jmdevita/parcel-ha/releases)
+![GH-stars](https://img.shields.io/github/stars/jmdevita/parcel-ha?style=flat-square)
+\
 [![Python package](https://github.com/jmdevita/parcel-ha/actions/workflows/pythonpackage.yaml/badge.svg?branch=main)](https://github.com/jmdevita/parcel-ha/actions/workflows/pythonpackage.yaml)
 [![Validate with hassfest](https://github.com/jmdevita/parcel-ha/actions/workflows/hassfest.yaml/badge.svg?branch=main)](https://github.com/jmdevita/parcel-ha/actions/workflows/hassfest.yaml)
 [![HACS Action](https://github.com/jmdevita/parcel-ha/actions/workflows/validate.yaml/badge.svg?branch=main)](https://github.com/jmdevita/parcel-ha/actions/workflows/validate.yaml)
@@ -162,9 +167,18 @@ styles:
     - opacity: "0.5"
 ```
 
-<img src="parcel_button_card.png" alt="Example Card" width="250"/>
+<img src="/docs/images/parcel_button_card.png" alt="Example Button Card" width="250"/>
 
 You may want to modify the dimensions, opacity, etc to suit your tastes.
+
+### Community Cards
+Feel free to make a pull request with your template under docs/community_templates !
+
+[Auto-Entities Card](/docs/community_templates/auto_entities.yaml) by @robbinonline
+<img src="/docs/images/parcel_bubble_card.png" alt="Example Bubble Card" width="250"/>
+
+[Auto-Entities Card](/docs/community_templates/bubble_card.yaml) by @georgefahmy
+<img src="/docs/images/parcel_auto_entities_card.png" alt="Example Bubble Card" width="250"/>
 
 Development
 -----------

@@ -1,0 +1,72 @@
+# Made by @robbinonline
+# Requires auto-entities and template-entity-row HACS custom cards
+
+type: custom:auto-entities
+card:
+  type: entities
+  title: Parcel Deliveries
+filter:
+  template: >
+    {# Fetch parcel data from sensor #}
+    {% set parcels = state_attr('sensor.parcel_raw_shipment_data', 'deliveries') or [] %}
+    {% set enroute = namespace(list=[]) %}
+    {% set delivered = namespace(list=[]) %}
+
+    {# Loop through each parcel #}
+    {% for parcel in parcels %}
+      {% set statuscode = parcel.status_code | int %}
+      {% set carrier = parcel.carrier_code | upper %}
+      {% set name = parcel.description if parcel.description else 'Unknown sender' %}
+      {% set barcode = parcel.tracking_number %}
+      
+      {# Format the expected delivery time #}
+      {% if parcel.date_expected %}
+        {% set time = strptime(parcel.date_expected, '%Y-%m-%d %H:%M:%S') %}
+        {% if time.time()|string == '00:00:00' %}
+          {% set time = time.date() %}
+        {% endif %}
+
+      {# Classify parcel based on status code #}
+      {% if statuscode in [2, 3, 4] %}
+        {% set row = {
+          'type': 'custom:template-entity-row',
+          'entity': 'sensor.parcel_raw_shipment_data',
+          'name': '[' ~ carrier ~ '] ' ~ name ~ ' - ' ~ barcode,
+          'state': 'En route',
+          'secondary': 'Expected: ' ~ time,
+          'icon': 'mdi:truck-delivery'
+        } %}
+        {% set enroute.list = enroute.list + [row] %}
+      {% elif statuscode == 0 %}
+        {% set row = {
+          'type': 'custom:template-entity-row',
+          'entity': 'sensor.parcel_raw_shipment_data',
+          'name': '[' ~ carrier ~ '] ' ~ name ~ ' - ' ~ barcode,
+          'state': 'Delivered',
+          'secondary': 'Delivered: ' ~ time,
+          'icon': 'mdi:package-check'
+        } %}
+        {% set delivered.list = delivered.list + [row] %}
+      {% endif %}
+    {% endfor %}
+
+    {# Build final list for card #}
+    [
+      {% if enroute.list | count > 0 %}
+        {
+          "type": "section",
+          "label": "📦 En Route"
+        },
+        {{ enroute.list | join(',') }},
+      {% endif %}
+      {% if delivered.list | count > 0 %}
+        {
+          "type": "section",
+          "label": "✅ Delivered"
+        },
+        {{ delivered.list | join(',') }}
+      {% endif %}
+    ]
+show_empty: true
+grid_options:
+  columns: full
