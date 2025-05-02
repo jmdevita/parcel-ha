@@ -8,6 +8,8 @@ from datetime import datetime
 from custom_components.parcelapp.coordinator import ParcelUpdateCoordinator
 
 from homeassistant.setup import async_setup_component
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from custom_components.parcelapp.const import DOMAIN
 
 
@@ -38,7 +40,7 @@ async def test_parcel_update_coordinator(hass, aioclient_mock):
     # Initialize the coordinator
     coordinator = ParcelUpdateCoordinator(hass, mock_entry)
     coordinator.api_key = "test_api_key"  # Ensure the API key is set
-    coordinator.session = hass.helpers.aiohttp_client.async_get_clientsession(hass)
+    coordinator.session = async_get_clientsession(hass)
 
     # Perform the update
     await coordinator.async_refresh()
