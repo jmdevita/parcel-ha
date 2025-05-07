@@ -25,6 +25,7 @@ filter:
         {% if time.time()|string == '00:00:00' %}
           {% set time = time.date() %}
         {% endif %}
+      {% endif %}
 
       {# Classify parcel based on status code #}
       {% if statuscode in [2, 3, 4] %}
