@@ -82,5 +82,10 @@
                 }
             }
         }
+    },
+    "system_health": {
+        "info": {
+            "can_reach_server": "Reach Parcel server"
+        }
     }
 }
