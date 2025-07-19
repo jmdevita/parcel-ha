@@ -54,10 +54,21 @@ class RecentShipment(SensorEntity):
         self.coordinator = coordinator
         self._hass_custom_attributes = {}
         self._attr_name = "Parcel Recent Shipment"
-        self._attr_unique_id = "Parcel_Recent_Shipment"
+        self._attr_unique_id = f"{coordinator.config_entry.entry_id}_recent_shipment"
         self._globalid = "Parcel_Recent_Shipment"
         self._attr_icon = "mdi:package"
         self._attr_state = None
+
+    @property
+    def device_info(self):
+        """Return device information."""
+        return {
+            "identifiers": {(DOMAIN, self.coordinator.config_entry.entry_id)},
+            "name": "Parcel App",
+            "manufacturer": "Parcel App",
+            "model": "Cloud API",
+            "entry_type": "service",
+        }
 
     @property
     def state(self) -> Any:
@@ -133,10 +144,21 @@ class ActiveShipment(SensorEntity):
         self.coordinator = coordinator
         self._hass_custom_attributes = {}
         self._attr_name = "Parcel Active Shipment"
-        self._attr_unique_id = "Parcel_Active_Shipment"
+        self._attr_unique_id = f"{coordinator.config_entry.entry_id}_active_shipment"
         self._globalid = "Parcel_Active_Shipment"
         self._attr_icon = "mdi:package"
         self._attr_state = None
+
+    @property
+    def device_info(self):
+        """Return device information."""
+        return {
+            "identifiers": {(DOMAIN, self.coordinator.config_entry.entry_id)},
+            "name": "Parcel App",
+            "manufacturer": "Parcel App",
+            "model": "Cloud API",
+            "entry_type": "service",
+        }
 
     @property
     def state(self) -> Any:
@@ -386,10 +408,21 @@ class CollectionShipment(SensorEntity):
         self.coordinator = coordinator
         self._hass_custom_attributes = {}
         self._attr_name = "Parcel Collection Shipment"
-        self._attr_unique_id = "Parcel_Collection_Shipment"
+        self._attr_unique_id = f"{coordinator.config_entry.entry_id}_collection_shipment"
         self._globalid = "Parcel_Collection_Shipment"
         self._attr_icon = "mdi:package-up"
         self._attr_state = None
+
+    @property
+    def device_info(self):
+        """Return device information."""
+        return {
+            "identifiers": {(DOMAIN, self.coordinator.config_entry.entry_id)},
+            "name": "Parcel App",
+            "manufacturer": "Parcel App",
+            "model": "Cloud API",
+            "entry_type": "service",
+        }
 
     @property
     def state(self) -> Any:
@@ -467,10 +500,21 @@ class RawShipmentData(SensorEntity):
         self.coordinator = coordinator
         self._hass_custom_attributes = {}
         self._attr_name = "Parcel Raw Shipment Data"
-        self._attr_unique_id = "Parcel_Raw_Shipment_Data"
+        self._attr_unique_id = f"{coordinator.config_entry.entry_id}_raw_shipment_data"
         self._globalid = "Parcel_Raw_Shipment_Data"
         self._attr_icon = "mdi:package-down"
         self._attr_state = None
+
+    @property
+    def device_info(self):
+        """Return device information."""
+        return {
+            "identifiers": {(DOMAIN, self.coordinator.config_entry.entry_id)},
+            "name": "Parcel App",
+            "manufacturer": "Parcel App",
+            "model": "Cloud API",
+            "entry_type": "service",
+        }
 
     @property
     def state(self) -> Any:

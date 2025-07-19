@@ -6,7 +6,7 @@ from aiohttp import ClientResponseError
 import voluptuous as vol
 
 from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import config_validation as cv, device_registry as dr
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import COURIER, DOMAIN, PARCEL_NAME, TRACKING_NUMBER, TYPE, OLD_NUMBER, OLD_TYPE
@@ -15,6 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 
 ADD_PARCEL_SCHEMA = vol.Schema(
     {
+        vol.Required("device_id"): cv.string,
         vol.Required(PARCEL_NAME): cv.string,
         vol.Required(TRACKING_NUMBER): cv.string,
         vol.Required(COURIER): cv.string,
@@ -23,6 +24,7 @@ ADD_PARCEL_SCHEMA = vol.Schema(
 
 DELETE_PARCEL_SCHEMA = vol.Schema(
     {
+        vol.Required("device_id"): cv.string,
         vol.Required(TRACKING_NUMBER): cv.string,
         vol.Required(TYPE): cv.string,
     }
@@ -30,6 +32,7 @@ DELETE_PARCEL_SCHEMA = vol.Schema(
 
 EDIT_PARCEL_SCHEMA = vol.Schema(
     {
+        vol.Required("device_id"): cv.string,
         vol.Required(PARCEL_NAME): cv.string,
         vol.Required(TRACKING_NUMBER): cv.string,
         vol.Required(COURIER): cv.string,
@@ -38,6 +41,19 @@ EDIT_PARCEL_SCHEMA = vol.Schema(
     }
 )
 
+async def async_get_config_entry_from_device_id(hass: HomeAssistant, device_id: str):
+    """Get the config entry from a device ID."""
+    device_registry = dr.async_get(hass)
+    device = device_registry.async_get(device_id)
+    if not device:
+        _LOGGER.error("Device not found: %s", device_id)
+        return None
+
+    for entry_id in device.config_entries:
+        entry = hass.config_entries.async_get_entry(entry_id)
+        if entry and entry.domain == DOMAIN:
+            return entry
+    return None
 
 async def async_register_services(hass: HomeAssistant):
     """Register ParcelApp services."""
@@ -46,13 +62,19 @@ async def async_register_services(hass: HomeAssistant):
 
     async def async_add_parcel(call: ServiceCall):
         """Add a parcel to ParcelApp."""
+        device_id = call.data["device_id"]
+        config_entry = await async_get_config_entry_from_device_id(hass, device_id)
+        if not config_entry:
+            return
+
+        account_token = config_entry.data.get("account_token", "")
+        if not account_token:
+            _LOGGER.error("Account token not found for device: %s", device_id)
+            return
+        
         parcel_name = call.data[PARCEL_NAME]
         tracking_number = call.data[TRACKING_NUMBER]
         courier = call.data[COURIER]
-
-        # Retrieve the account_token from the config entry
-        config_entry = hass.config_entries.async_entries(DOMAIN)[0]
-        account_token = config_entry.data.get("account_token", "")
 
         # Prepare the payload for the API call
         payload = {

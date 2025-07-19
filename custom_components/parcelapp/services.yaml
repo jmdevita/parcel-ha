@@ -1,5 +1,12 @@
 add_parcel:
   fields:
+    device_id:
+      description: "The device to target."
+      example: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4"
+      required: true
+      selector:
+        device:
+          integration: parcelapp
     parcel_name:
       example: "My Parcel"
       required: true
@@ -18,6 +25,13 @@ add_parcel:
 
 delete_parcel:
   fields:
+    device_id:
+      description: "The device to target."
+      example: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4"
+      required: true
+      selector:
+        device:
+          integration: parcelapp
     tracking_number:
       example: "1234567890"
       required: true
@@ -31,6 +45,13 @@ delete_parcel:
 
 edit_parcel:
   fields:
+    device_id:
+      description: "The device to target."
+      example: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4"
+      required: true
+      selector:
+        device:
+          integration: parcelapp
     parcel_name:
       example: "Updated Parcel Name"
       required: true

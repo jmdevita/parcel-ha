@@ -28,13 +28,7 @@ async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ParcelConfigEntry) -> bool:
     """Set up the integration based on a config entry."""
-    _LOGGER.info("Setting up Parcel integration based on config entry")
-
-    # Check if the entry is already set up
-    if DOMAIN in hass.data and entry.entry_id in hass.data[DOMAIN]:
-        raise ValueError(
-            f"Config entry {entry.title} ({entry.entry_id}) for {DOMAIN} has already been setup!"
-        )
+    _LOGGER.info(f"Setting up Parcel integration based on config entry: {entry.entry_id}")
 
     # Setup the coordinator
     coordinator = ParcelUpdateCoordinator(hass, entry)
@@ -50,7 +44,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ParcelConfigEntry) -> bo
 
     entry.runtime_data = coordinator
     entry.async_on_unload(entry.add_update_listener(async_update_entry))
-    await cleanup_old_device(hass)
+    if not hass.data[DOMAIN].get("processed_cleanup"):
+        await cleanup_old_device(hass)
+        hass.data[DOMAIN]["processed_cleanup"] = True
 
     return True
 

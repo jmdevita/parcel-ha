@@ -52,7 +52,9 @@ async def test_recent_shipment_sensor():
     """Test the RecentShipment sensor with data from the recent.json fixture."""
     # Mock the coordinator
     mock_coordinator = AsyncMock(spec=ParcelUpdateCoordinator)
+    mock_coordinator.config_entry = AsyncMock(spec=ParcelUpdateCoordinator)
     mock_coordinator.data = recent_data
+    mock_coordinator.config_entry.entry_id = "test_entry_12345"
 
     # Initialize the RecentShipment sensor
     sensor = RecentShipment(mock_coordinator)
@@ -79,7 +81,9 @@ async def test_active_shipment_sensor(hass):
 
     # Mock the coordinator
     mock_coordinator = AsyncMock(spec=ParcelUpdateCoordinator)
+    mock_coordinator.config_entry = AsyncMock(spec=ParcelUpdateCoordinator)
     mock_coordinator.data = recent_data
+    mock_coordinator.config_entry.entry_id = "test_entry_12345"
 
     # Initialize the ActiveShipment sensor
     sensor = ActiveShipment(mock_coordinator)
@@ -115,7 +119,9 @@ async def test_collectable_shipment_sensor(hass):
 
     # Mock the coordinator
     mock_coordinator = AsyncMock(spec=ParcelUpdateCoordinator)
+    mock_coordinator.config_entry = AsyncMock(spec=ParcelUpdateCoordinator)
     mock_coordinator.data = recent_collectable_data
+    mock_coordinator.config_entry.entry_id = "test_entry_12345"
 
     # Initialize the ActiveShipment sensor
     sensor = CollectionShipment(mock_coordinator)
@@ -135,7 +141,9 @@ async def test_recent_shipment_sensor_no_data(hass):
 
     # Mock the coordinator with no data
     mock_coordinator = AsyncMock(spec=ParcelUpdateCoordinator)
+    mock_coordinator.config_entry = AsyncMock(spec=ParcelUpdateCoordinator)
     mock_coordinator.data = no_data
+    mock_coordinator.config_entry.entry_id = "test_entry_12345"
 
     # Initialize the RecentShipment sensor
     sensor = RecentShipment(mock_coordinator)
@@ -166,7 +174,9 @@ async def test_active_shipment_sensor_no_data(hass):
 
     # Mock the coordinator with no data
     mock_coordinator = AsyncMock(spec=ParcelUpdateCoordinator)
+    mock_coordinator.config_entry = AsyncMock(spec=ParcelUpdateCoordinator)
     mock_coordinator.data = no_data
+    mock_coordinator.config_entry.entry_id = "test_entry_12345"
 
     # Initialize the ActiveShipment sensor
     sensor = ActiveShipment(mock_coordinator)
@@ -197,7 +207,9 @@ async def test_collection_shipment_sensor_no_data(hass):
 
     # Mock the coordinator with no data
     mock_coordinator = AsyncMock(spec=ParcelUpdateCoordinator)
+    mock_coordinator.config_entry = AsyncMock(spec=ParcelUpdateCoordinator)
     mock_coordinator.data = no_data
+    mock_coordinator.config_entry.entry_id = "test_entry_12345"
 
     # Initialize the RecentShipment sensor
     sensor = CollectionShipment(mock_coordinator)
@@ -218,7 +230,9 @@ async def test_recent_shipment_sensor_multi_data():
 
     # Mock the coordinator
     mock_coordinator = AsyncMock(spec=ParcelUpdateCoordinator)
+    mock_coordinator.config_entry = AsyncMock(spec=ParcelUpdateCoordinator)
     mock_coordinator.data = recent_multi_data
+    mock_coordinator.config_entry.entry_id = "test_entry_12345"
 
     # Initialize the RecentShipment sensor
     sensor = RecentShipment(mock_coordinator)
@@ -244,7 +258,9 @@ async def test_active_shipment_sensor_multi_data(hass):
 
     # Mock the coordinator with no data
     mock_coordinator = AsyncMock(spec=ParcelUpdateCoordinator)
+    mock_coordinator.config_entry = AsyncMock(spec=ParcelUpdateCoordinator)
     mock_coordinator.data = recent_multi_data
+    mock_coordinator.config_entry.entry_id = "test_entry_12345"
 
     # Initialize the ActiveShipment sensor
     sensor = ActiveShipment(mock_coordinator)
@@ -276,7 +292,9 @@ async def test_collectable_shipment_sensor_multi_data(hass):
 
     # Mock the coordinator
     mock_coordinator = AsyncMock(spec=ParcelUpdateCoordinator)
+    mock_coordinator.config_entry = AsyncMock(spec=ParcelUpdateCoordinator)
     mock_coordinator.data = recent_multi_data
+    mock_coordinator.config_entry.entry_id = "test_entry_12345"
 
     # Initialize the ActiveShipment sensor
     sensor = CollectionShipment(mock_coordinator)
