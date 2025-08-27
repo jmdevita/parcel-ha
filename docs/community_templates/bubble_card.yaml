@@ -1,14 +1,24 @@
 # Created by @georgefahmy
+# Note: intended to be wrapped in a bubble card popup as a detailed view.
 
 type: markdown
 content: >-
   # Deliveries
 
   {% set raw = state_attr('sensor.parcel_raw_shipment_data', 'deliveries') %}
-
-  {% set deliveries = raw | selectattr('status_code','>',0) | sort(attribute='status_code')  | sort(attribute='date_expected') %}
-
-  {% set delivered = raw | selectattr('status_code','eq',0) | list %}
+  {% set ns = namespace(deliveries = []) %}
+  {% for order in raw | selectattr('status_code','>',0) %}
+    {% if order.date_expected is defined %}
+      {% set sort_date = as_datetime(order.date_expected).date() %}
+      {% set display_date = as_datetime(order.date_expected).date() %}
+    {% else %}
+      {% set sort_date = as_datetime('9999-12-31').date() %}
+      {% set display_date = 'none' %}
+    {% endif %}
+    {% set ns.deliveries = ns.deliveries + [ order | combine({'sort_date': sort_date, 'display_date': display_date}) ] %}
+  {% endfor %}
+  {% set deliveries = ns.deliveries | sort(attribute='sort_date') %}
+  {% set delivered = raw | selectattr('status_code','eq',0) | list %
 
   {% if delivered | length > 0 %}
     ## Delivered Packages
@@ -19,19 +29,12 @@ content: >-
 
   {% if deliveries | length > 0%}
     ## In Progress
-  {% for delivery in deliveries %}
-  {% if "date_expected" in delivery.keys() %}
-    {% set date = as_datetime(delivery.date_expected).date() %}
-  {% else %}
-    {% set date = "none" %}
-  {% endif %}
-
-  ### {{ delivery.description }}
-    - Estimated - __{{ date }}__
-    - Latest Update - {{ delivery.events[0].date }}: _{{ delivery.events[0].event }}_
-    - Tracking Number: _{{delivery.tracking_number }}_
-
-  {% endfor %}
+    {% for delivery in deliveries %}    
+      ### {{ delivery.description }}
+      - Estimated - __{{ date }}__
+      - Latest Update - {{ delivery.events[0].date }}: _{{ delivery.events[0].event }}_
+      - Tracking Number: _{{delivery.tracking_number }}_
+    {% endfor %}
   {% else %}
     No Scheduled Deliveries
   {% endif %}
