@@ -3,8 +3,6 @@
 
 type: markdown
 content: >-
-  # Deliveries
-
   {% set raw = state_attr('sensor.parcel_raw_shipment_data', 'deliveries') %}
   {% set ns = namespace(deliveries = []) %}
   {% for order in raw | selectattr('status_code','>',0) %}
@@ -18,8 +16,9 @@ content: >-
     {% set ns.deliveries = ns.deliveries + [ order | combine({'sort_date': sort_date, 'display_date': display_date}) ] %}
   {% endfor %}
   {% set deliveries = ns.deliveries | sort(attribute='sort_date') %}
-  {% set delivered = raw | selectattr('status_code','eq',0) | list %
+  {% set delivered = raw | selectattr('status_code','eq',0) | list %}
 
+  # Deliveries
   {% if delivered | length > 0 %}
     ## Delivered Packages
     {% for delivery in delivered %}
@@ -31,7 +30,7 @@ content: >-
     ## In Progress
     {% for delivery in deliveries %}    
       ### {{ delivery.description }}
-      - Estimated - __{{ date }}__
+      - Estimated - __{{ delivery.display_date }}__
       - Latest Update - {{ delivery.events[0].date }}: _{{ delivery.events[0].event }}_
       - Tracking Number: _{{delivery.tracking_number }}_
     {% endfor %}
