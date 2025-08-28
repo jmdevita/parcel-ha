@@ -29,7 +29,7 @@ content: >-
   {% if deliveries | length > 0%}
     ## In Progress
     {% for delivery in deliveries %}    
-      ### {{ delivery.description }}
+    #### {{ delivery.description }}
       - Estimated - __{{ delivery.display_date }}__
       - Latest Update - {{ delivery.events[0].date }}: _{{ delivery.events[0].event }}_
       - Tracking Number: _{{delivery.tracking_number }}_
