@@ -1,0 +1,33 @@
+name: Create Release ZIP
+
+on:
+  release:
+    types: [created, published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Create Release Asset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create ZIP file
+        run: |
+          cd custom_components/parcelapp
+          zip -r ../../parcelapp.zip .
+          cd ../..
+          ls -la parcelapp.zip
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./parcelapp.zip
+          asset_name: parcelapp.zip
+          asset_content_type: application/zip
