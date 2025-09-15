@@ -1,4 +1,6 @@
 {
     "name": "Parcel App",
-    "country": ["us"]
+    "content_in_root": false,
+    "filename": "parcelapp.zip",
+    "zip_release": true
 }
