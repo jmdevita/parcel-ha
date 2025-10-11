@@ -8,20 +8,33 @@ add_parcel:
         device:
           integration: parcelapp
     parcel_name:
+      name: "Parcel Name"
+      description: "Name/description for the parcel"
       example: "My Parcel"
       required: true
       selector:
         text:
     tracking_number:
+      name: "Tracking Number"
+      description: "Tracking number for the parcel"
       example: "1234567890"
       required: true
       selector:
         text:
     courier:
+      name: "Courier"
+      description: "Courier/carrier code (e.g., ups, fedex, usps)"
       example: "ups"
       required: true
       selector:
         text:
+    send_push_confirmation:
+      name: "Send Push Notification"
+      description: "Send a push notification when the parcel is added"
+      required: false
+      default: false
+      selector:
+        boolean:
 
 delete_parcel:
   fields:

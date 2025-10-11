@@ -6,7 +6,7 @@ import logging
 from aiohttp import ClientResponseError
 import voluptuous as vol
 
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv, device_registry as dr
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -29,6 +29,7 @@ ADD_PARCEL_SCHEMA = vol.Schema(
         vol.Required(PARCEL_NAME): cv.string,
         vol.Required(TRACKING_NUMBER): cv.string,
         vol.Required(COURIER): cv.string,
+        vol.Required("send_push_confirmation", default=False): cv.boolean,
     }
 )
 
@@ -164,13 +165,14 @@ async def async_register_services(hass: HomeAssistant):
         parcel_name = call.data[PARCEL_NAME]
         tracking_number = str(call.data[TRACKING_NUMBER])
         courier = call.data[COURIER]
+        send_push = call.data.get("send_push_confirmation", False)
 
         # Prepare the payload for the official API
         payload = {
             "tracking_number": tracking_number,
             "carrier_code": courier,
             "description": parcel_name,
-            "send_push_confirmation": False,
+            "send_push_confirmation": send_push,
         }
         headers = {
             "api-key": api_key,
@@ -194,6 +196,13 @@ async def async_register_services(hass: HomeAssistant):
                         tracking_number,
                         courier,
                     )
+                    return {
+                        "success": True,
+                        "message": f"Successfully added parcel '{parcel_name}'",
+                        "parcel_name": parcel_name,
+                        "tracking_number": tracking_number,
+                        "carrier": courier,
+                    }
                 else:
                     error_msg = result.get("error_message", "Unknown error")
                     _LOGGER.error(
@@ -302,6 +311,13 @@ async def async_register_services(hass: HomeAssistant):
                     parcel_type,
                 )
 
+                return {
+                    "success": True,
+                    "message": "Successfully deleted parcel",
+                    "tracking_number": tracking_number,
+                    "type": parcel_type,
+                }
+
         except HomeAssistantError:
             raise
         except ClientResponseError as err:
@@ -395,6 +411,16 @@ async def async_register_services(hass: HomeAssistant):
                     courier,
                 )
 
+                return {
+                    "success": True,
+                    "message": f"Successfully edited parcel '{parcel_name}'",
+                    "parcel_name": parcel_name,
+                    "tracking_number": tracking_number,
+                    "carrier": courier,
+                    "old_tracking_number": old_number,
+                    "old_carrier": old_type,
+                }
+
         except HomeAssistantError:
             raise
         except ClientResponseError as err:
@@ -428,6 +454,7 @@ async def async_register_services(hass: HomeAssistant):
         "add_parcel",
         async_add_parcel,
         schema=ADD_PARCEL_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL,
     )
 
     hass.services.async_register(
@@ -435,6 +462,7 @@ async def async_register_services(hass: HomeAssistant):
         "delete_parcel",
         async_delete_parcel,
         schema=DELETE_PARCEL_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL,
     )
 
     hass.services.async_register(
@@ -442,4 +470,5 @@ async def async_register_services(hass: HomeAssistant):
         "edit_parcel",
         async_edit_parcel,
         schema=EDIT_PARCEL_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL,
     )
