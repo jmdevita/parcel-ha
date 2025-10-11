@@ -53,26 +53,36 @@ edit_parcel:
         device:
           integration: parcelapp
     parcel_name:
+      name: "Parcel Name"
+      description: "New name for the parcel"
       example: "Updated Parcel Name"
       required: true
       selector:
         text:
     tracking_number:
+      name: "Tracking Number"
+      description: "New tracking number"
       example: "1234567890"
       required: true
       selector:
         text:
     courier:
+      name: "Courier"
+      description: "New courier/carrier code"
       example: "fedex"
       required: true
       selector:
         text:
-    old_number:
+    oldNumber:
+      name: "Old Tracking Number"
+      description: "Current tracking number of the parcel to edit"
       example: "1234567890"
       required: true
       selector:
         text:
-    old_type:
+    oldType:
+      name: "Old Courier"
+      description: "Current courier/carrier code of the parcel to edit"
       example: "fedex"
       required: true
       selector:
