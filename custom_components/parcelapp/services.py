@@ -68,6 +68,24 @@ async def async_get_config_entry_from_device_id(hass: HomeAssistant, device_id: 
     return None
 
 
+async def async_create_notification(
+    hass: HomeAssistant,
+    title: str,
+    message: str,
+    notification_id: str,
+) -> None:
+    """Create a persistent notification in Home Assistant."""
+    await hass.services.async_call(
+        "persistent_notification",
+        "create",
+        {
+            "title": title,
+            "message": message,
+            "notification_id": notification_id,
+        },
+    )
+
+
 def get_http_error_message(
     status_code: int,
     operation: str,
@@ -196,9 +214,17 @@ async def async_register_services(hass: HomeAssistant):
                         tracking_number,
                         courier,
                     )
+
+                    # Create success notification
+                    await async_create_notification(
+                        hass,
+                        title="Parcel Added Successfully",
+                        message=f"Successfully added parcel '{parcel_name}' with tracking number {tracking_number}",
+                        notification_id=f"parcelapp_add_{tracking_number}",
+                    )
+
                     return {
                         "success": True,
-                        "message": f"Successfully added parcel '{parcel_name}'",
                         "parcel_name": parcel_name,
                         "tracking_number": tracking_number,
                         "carrier": courier,
@@ -311,9 +337,16 @@ async def async_register_services(hass: HomeAssistant):
                     parcel_type,
                 )
 
+                # Create success notification
+                await async_create_notification(
+                    hass,
+                    title="Parcel Deleted Successfully",
+                    message=f"Successfully deleted parcel with tracking number {tracking_number}",
+                    notification_id=f"parcelapp_delete_{tracking_number}",
+                )
+
                 return {
                     "success": True,
-                    "message": "Successfully deleted parcel",
                     "tracking_number": tracking_number,
                     "type": parcel_type,
                 }
@@ -411,9 +444,16 @@ async def async_register_services(hass: HomeAssistant):
                     courier,
                 )
 
+                # Create success notification
+                await async_create_notification(
+                    hass,
+                    title="Parcel Edited Successfully",
+                    message=f"Successfully edited parcel '{parcel_name}' with tracking number {tracking_number}",
+                    notification_id=f"parcelapp_edit_{tracking_number}",
+                )
+
                 return {
                     "success": True,
-                    "message": f"Successfully edited parcel '{parcel_name}'",
                     "parcel_name": parcel_name,
                     "tracking_number": tracking_number,
                     "carrier": courier,
