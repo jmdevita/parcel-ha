@@ -182,6 +182,8 @@ Feel free to make a pull request with your template under docs/community_templat
 \
 <img src="/docs/images/parcel_bubble_card.png" alt="Example Bubble Card" width="250"/>
 
+[Push Notification - Parcel Added](/docs/community_templates/push_notification_parcel_added.yaml) by @BenSmartHome
+
 Development
 -----------
 

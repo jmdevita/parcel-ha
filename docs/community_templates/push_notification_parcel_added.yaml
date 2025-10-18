@@ -1,0 +1,24 @@
+# Created by @BenSmartHome
+# Note: Push notification when a parcel is added successfully.
+
+alias: Push bei Paket hinzugefügt
+triggers:
+  - event_type: call_service
+    event_data:
+      domain: persistent_notification
+      service: create
+    trigger: event
+conditions:
+  - condition: template
+    value_template: |
+      {{ trigger.event.data.service_data.title == "Parcel Added Successfully" }}
+actions:
+  - data:
+      title: Paket erfolgreich hinzugefügt
+      message: Bitte warte ein paar Minuten, bis es im Dashboard angezeigt wird!.
+    action: notify.mobile_app_iphone_13_pro
+  - data:
+      title: Paket erfolgreich hinzugefügt
+      message: Bitte warte ein paar Minuten, bis es im Dashboard angezeigt wird!.
+    action: notify.mobile_app_s21_fe
+mode: single
