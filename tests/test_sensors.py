@@ -1,7 +1,7 @@
 import pytest
 import json
 from datetime import datetime, timedelta, date
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock
 from pathlib import Path
 from custom_components.parcelapp.sensor import RecentShipment, ActiveShipment, CollectionShipment
 from custom_components.parcelapp.coordinator import ParcelUpdateCoordinator
@@ -48,7 +48,7 @@ recent_multi_data["deliveries"][3]["date_expected"] = datetime.strftime(today,"%
 recent_multi_data["deliveries"][3]["events"][0]["date"] = datetime.strftime(yesterday,"%B %-d, %Y %I:%M %p") + " EST"
 
 @pytest.mark.asyncio
-async def test_recent_shipment_sensor():
+async def test_recent_shipment_sensor(hass):
     """Test the RecentShipment sensor with data from the recent.json fixture."""
     # Mock the coordinator
     mock_coordinator = AsyncMock(spec=ParcelUpdateCoordinator)
@@ -58,9 +58,11 @@ async def test_recent_shipment_sensor():
 
     # Initialize the RecentShipment sensor
     sensor = RecentShipment(mock_coordinator)
+    sensor.hass = hass
+    sensor.async_write_ha_state = Mock()
 
-    # Call async_update to fetch data
-    await sensor.async_update()
+    # Call _handle_coordinator_update to fetch data
+    sensor._handle_coordinator_update()
 
     # Assert the state and attributes for the first delivery in the fixture
     assert sensor.state == "Delivery in transit."
@@ -87,9 +89,11 @@ async def test_active_shipment_sensor(hass):
 
     # Initialize the ActiveShipment sensor
     sensor = ActiveShipment(mock_coordinator)
+    sensor.hass = hass
+    sensor.async_write_ha_state = Mock()
 
     # Call async_update to fetch data
-    await sensor.async_update()
+    sensor._handle_coordinator_update()
 
     # Assert the state and attributes
     assert sensor.state == "in 1 day"
@@ -125,9 +129,11 @@ async def test_collectable_shipment_sensor(hass):
 
     # Initialize the ActiveShipment sensor
     sensor = CollectionShipment(mock_coordinator)
+    sensor.hass = hass
+    sensor.async_write_ha_state = Mock()
 
     # Call async_update to fetch data
-    await sensor.async_update()
+    sensor._handle_coordinator_update()
 
     # Assert the state and attributes
     assert sensor.state == 0
@@ -147,9 +153,11 @@ async def test_recent_shipment_sensor_no_data(hass):
 
     # Initialize the RecentShipment sensor
     sensor = RecentShipment(mock_coordinator)
+    sensor.hass = hass
+    sensor.async_write_ha_state = Mock()
 
     # Call async_update to fetch data
-    await sensor.async_update()
+    sensor._handle_coordinator_update()
 
     # Assert the state and attributes
     assert sensor.state == 'No parcels for now..'
@@ -180,9 +188,11 @@ async def test_active_shipment_sensor_no_data(hass):
 
     # Initialize the ActiveShipment sensor
     sensor = ActiveShipment(mock_coordinator)
+    sensor.hass = hass
+    sensor.async_write_ha_state = Mock()
 
     # Call async_update to fetch data
-    await sensor.async_update()
+    sensor._handle_coordinator_update()
 
     # Assert the state and attributes
     assert sensor.state == 'No parcels for now..'
@@ -213,9 +223,11 @@ async def test_collection_shipment_sensor_no_data(hass):
 
     # Initialize the RecentShipment sensor
     sensor = CollectionShipment(mock_coordinator)
+    sensor.hass = hass
+    sensor.async_write_ha_state = Mock()
 
     # Call async_update to fetch data
-    await sensor.async_update()
+    sensor._handle_coordinator_update()
 
     # Assert the state and attributes
     assert sensor.state == 0
@@ -225,7 +237,7 @@ async def test_collection_shipment_sensor_no_data(hass):
 
 
 @pytest.mark.asyncio
-async def test_recent_shipment_sensor_multi_data():
+async def test_recent_shipment_sensor_multi_data(hass):
     """Test the RecentShipment sensor with data from the multi.json fixture."""
 
     # Mock the coordinator
@@ -236,9 +248,11 @@ async def test_recent_shipment_sensor_multi_data():
 
     # Initialize the RecentShipment sensor
     sensor = RecentShipment(mock_coordinator)
+    sensor.hass = hass
+    sensor.async_write_ha_state = Mock()
 
-    # Call async_update to fetch data
-    await sensor.async_update()
+    # Call _handle_coordinator_update to fetch data
+    sensor._handle_coordinator_update()
 
     # Assert the state and attributes for the first delivery in the fixture
     assert sensor.state == "Delivery expecting a pickup by the recipient."
@@ -264,9 +278,11 @@ async def test_active_shipment_sensor_multi_data(hass):
 
     # Initialize the ActiveShipment sensor
     sensor = ActiveShipment(mock_coordinator)
+    sensor.hass = hass
+    sensor.async_write_ha_state = Mock()
 
     # Call async_update to fetch data
-    await sensor.async_update()
+    sensor._handle_coordinator_update()
 
     # Assert the state and attributes
     # one parcel arriving today, not an error!
@@ -298,9 +314,11 @@ async def test_collectable_shipment_sensor_multi_data(hass):
 
     # Initialize the ActiveShipment sensor
     sensor = CollectionShipment(mock_coordinator)
+    sensor.hass = hass
+    sensor.async_write_ha_state = Mock()
 
     # Call async_update to fetch data
-    await sensor.async_update()
+    sensor._handle_coordinator_update()
 
     # Assert the state and attributes
     assert sensor.state == 1
