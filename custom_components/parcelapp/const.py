@@ -2,7 +2,9 @@
 
 DOMAIN = "parcelapp"
 PARCEL_URL = "https://api.parcel.app/external/deliveries/"
-UPDATE_INTERVAL_SECONDS = 300  # RATE LIMIT IS 20 PER HOUR
+UPDATE_INTERVAL_SECONDS = 300
+MIN_UPDATE_INTERVAL_SECONDS = 300
+MAX_UPDATE_INTERVAL_SECONDS = 1800
 CARRIER_CODE_ENDPOINT = "https://api.parcel.app/external/supported_carriers.json"
 DELIVERY_STATUS_CODES = {
     -1: "None",

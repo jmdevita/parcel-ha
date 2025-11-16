@@ -2,7 +2,7 @@ name: Create Release ZIP
 
 on:
   release:
-    types: [created, published]
+    types: [published]
 
 permissions:
   contents: write

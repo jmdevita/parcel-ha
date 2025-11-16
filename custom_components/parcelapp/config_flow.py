@@ -8,8 +8,15 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResult
+from homeassistant.helpers import selector
 
-from .const import DOMAIN, PARCEL_URL
+from .const import (
+    DOMAIN,
+    PARCEL_URL,
+    UPDATE_INTERVAL_SECONDS,
+    MIN_UPDATE_INTERVAL_SECONDS,
+    MAX_UPDATE_INTERVAL_SECONDS,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -105,6 +112,8 @@ class ParcelOptionsFlow(config_entries.OptionsFlow):
             # Validate the new API key if it was changed
             new_api_key = user_input.get("api_key")
             new_account_token = user_input.get("account_token")
+            new_update_interval_minutes = user_input.get("update_interval_minutes", UPDATE_INTERVAL_SECONDS // 60)
+            new_update_interval = new_update_interval_minutes * 60
 
             # Check if the API key or account token has changed
             if new_api_key != self.config_entry.data.get(
@@ -140,13 +149,23 @@ class ParcelOptionsFlow(config_entries.OptionsFlow):
                         errors={"base": "cannot_connect"},
                     )
 
-            # Save the updated options
-            return self.async_create_entry(data=user_input)
+            return self.async_create_entry(
+                data={
+                    "api_key": new_api_key,
+                    "account_token": new_account_token,
+                    "update_interval": new_update_interval,
+                }
+            )
 
         return self.async_show_form(step_id="init", data_schema=self._create_schema())
 
     def _create_schema(self) -> vol.Schema:
         """Create the form schema for updating the API key and optional account token."""
+        current_interval_seconds = self.config_entry.options.get(
+            "update_interval", UPDATE_INTERVAL_SECONDS
+        )
+        current_interval_minutes = current_interval_seconds // 60
+
         return vol.Schema(
             {
                 vol.Required(
@@ -157,6 +176,18 @@ class ParcelOptionsFlow(config_entries.OptionsFlow):
                     "account_token",
                     default=self.config_entry.data.get("account_token", ""),
                 ): str,
+                vol.Optional(
+                    "update_interval_minutes",
+                    default=current_interval_minutes,
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=MIN_UPDATE_INTERVAL_SECONDS // 60,
+                        max=MAX_UPDATE_INTERVAL_SECONDS // 60,
+                        step=5,
+                        mode=selector.NumberSelectorMode.SLIDER,
+                        unit_of_measurement="minutes",
+                    )
+                ),
             }
         )
 

@@ -18,7 +18,11 @@
                 "description": "Update the API Key and Account Token for ParcelApp",
                 "data": {
                     "api_key": "API Key (Required)",
-                    "account_token": "Account Token (Optional) | BETA"
+                    "account_token": "Account Token (Optional) | BETA",
+                    "update_interval_minutes": "Update Interval"
+                },
+                "data_description": {
+                    "update_interval_minutes": "How often to check for parcel updates (in minutes). API rate limit: 20 requests per hour."
                 }
             }
         }
