@@ -25,13 +25,16 @@ class ParcelUpdateCoordinator(DataUpdateCoordinator):
         self._hass = hass
         self.session = async_get_clientsession(self._hass)
         self.carrier_codes = {"carrier_codes_updated": "", "carrier_codes": {}}
+        update_interval_seconds = entry.options.get(
+            "update_interval", UPDATE_INTERVAL_SECONDS
+        )
 
         super().__init__(
             hass,
             _LOGGER,
             name=DOMAIN,
             config_entry=entry,
-            update_interval=timedelta(seconds=UPDATE_INTERVAL_SECONDS),
+            update_interval=timedelta(seconds=update_interval_seconds),
             always_update=True,
         )
 
