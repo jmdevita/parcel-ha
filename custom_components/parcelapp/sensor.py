@@ -9,10 +9,10 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     DOMAIN,
-    UPDATE_INTERVAL_SECONDS,
     RETURN_CODES,
     DELIVERY_STATUS_CODES,
     Shipment,
@@ -25,7 +25,6 @@ from .utils import dateparse
 PLATFORMS = [Platform.SENSOR]
 _LOGGER = logging.getLogger(__name__)
 CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
-SCAN_INTERVAL = timedelta(seconds=UPDATE_INTERVAL_SECONDS)
 
 
 async def async_setup_entry(
@@ -46,12 +45,12 @@ async def async_setup_entry(
     )
 
 
-class RecentShipment(SensorEntity):
+class RecentShipment(CoordinatorEntity, SensorEntity):
     """Representation of a sensor that fetches the top value from an API."""
 
     def __init__(self, coordinator: ParcelUpdateCoordinator) -> None:
         """Initialize the sensor."""
-        self.coordinator = coordinator
+        super().__init__(coordinator)
         self._hass_custom_attributes = {}
         self._attr_name = "Parcel Recent Shipment"
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_recent_shipment"
@@ -80,15 +79,14 @@ class RecentShipment(SensorEntity):
         """Return the state attributes of the sensor."""
         return self._hass_custom_attributes
 
-    async def async_update(self) -> None:
-        """Fetch the latest data from the coordinator."""
-        await self.coordinator.async_request_refresh()
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
         parcel_api_data = self.coordinator.data
 
         if parcel_api_data["deliveries"] == []:
             self._attr_state = "No parcels for now.."
             self._attr_icon = "mdi:close-circle"
-            self._hass_custom_attributes = EMPTY_ATTRIBUTES
+            self._hass_custom_attributes = EMPTY_ATTRIBUTES.copy()
         elif parcel_api_data["deliveries"]:
             data = parcel_api_data["deliveries"]
             carrier_codes = parcel_api_data["carrier_codes"]
@@ -135,13 +133,15 @@ class RecentShipment(SensorEntity):
             }
             self._hass_custom_attributes = attributes
 
+        self.async_write_ha_state()
 
-class ActiveShipment(SensorEntity):
+
+class ActiveShipment(CoordinatorEntity, SensorEntity):
     """Representation of a sensor that manipulates the data from the API, presents the next parcel due, and presents multiple attributes."""
 
     def __init__(self, coordinator: ParcelUpdateCoordinator) -> None:
         """Initialize the sensor."""
-        self.coordinator = coordinator
+        super().__init__(coordinator)
         self._hass_custom_attributes = {}
         self._attr_name = "Parcel Active Shipment"
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_active_shipment"
@@ -170,9 +170,8 @@ class ActiveShipment(SensorEntity):
         """Return the state attributes of the sensor."""
         return self._hass_custom_attributes
 
-    async def async_update(self) -> None:
-        """Fetch the latest data from the coordinator."""
-        await self.coordinator.async_request_refresh()
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
         parcel_api_data = self.coordinator.data
         shipments = []
         active_shipments = []
@@ -183,7 +182,7 @@ class ActiveShipment(SensorEntity):
         if parcel_api_data["deliveries"] == []:
             self._attr_state = "No parcels for now.."
             self._attr_icon = "mdi:close-circle"
-            self._hass_custom_attributes = EMPTY_ATTRIBUTES
+            self._hass_custom_attributes = EMPTY_ATTRIBUTES.copy()
             self._hass_custom_attributes["delivered_today"] = 0
         elif parcel_api_data["deliveries"]:
             data = parcel_api_data["deliveries"]
@@ -397,7 +396,10 @@ class ActiveShipment(SensorEntity):
                 "delivered_today": delivered_today,
             }
 
-class CollectionShipment(SensorEntity):
+        self.async_write_ha_state()
+
+
+class CollectionShipment(CoordinatorEntity, SensorEntity):
     """Representation of a sensor that reports any parcels currently ready for collection."""
 
     # Disabled by default
@@ -405,7 +407,7 @@ class CollectionShipment(SensorEntity):
 
     def __init__(self, coordinator: ParcelUpdateCoordinator) -> None:
         """Initialize the sensor."""
-        self.coordinator = coordinator
+        super().__init__(coordinator)
         self._hass_custom_attributes = {}
         self._attr_name = "Parcel Collection Shipment"
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_collection_shipment"
@@ -434,9 +436,8 @@ class CollectionShipment(SensorEntity):
         """Return the state attributes of the sensor."""
         return self._hass_custom_attributes
 
-    async def async_update(self) -> None:
-        """Fetch the latest data from the coordinator."""
-        await self.coordinator.async_request_refresh()
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
         parcel_api_data = self.coordinator.data
         collectable_shipments = [] 
 
@@ -485,11 +486,14 @@ class CollectionShipment(SensorEntity):
             }
         else:
             self._attr_state = 0
-            self._hass_custom_attributes = {                
+            self._hass_custom_attributes = {
                 "collectable_shipments": collectable_shipments,
             }
 
-class RawShipmentData(SensorEntity):
+        self.async_write_ha_state()
+
+
+class RawShipmentData(CoordinatorEntity, SensorEntity):
     """Representation of a sensor that fetches the raw data from the API."""
 
     # Disabled by default
@@ -497,7 +501,7 @@ class RawShipmentData(SensorEntity):
 
     def __init__(self, coordinator: ParcelUpdateCoordinator) -> None:
         """Initialize the sensor."""
-        self.coordinator = coordinator
+        super().__init__(coordinator)
         self._hass_custom_attributes = {}
         self._attr_name = "Parcel Raw Shipment Data"
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_raw_shipment_data"
@@ -526,9 +530,8 @@ class RawShipmentData(SensorEntity):
         """Return the state attributes of the sensor."""
         return self._hass_custom_attributes
 
-    async def async_update(self) -> None:
-        """Fetch the latest data from the coordinator."""
-        await self.coordinator.async_request_refresh()
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
         parcel_api_data = self.coordinator.data
 
         if parcel_api_data:
@@ -539,3 +542,5 @@ class RawShipmentData(SensorEntity):
                 "carrier_codes_updated": parcel_api_data["carrier_codes_updated"],
                 "utc_timestamp": parcel_api_data["utc_timestamp"],
             }
+
+        self.async_write_ha_state()

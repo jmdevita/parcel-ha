@@ -1,7 +1,7 @@
 """Test sensor for simple integration."""
 
 import pytest
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock
 from pathlib import Path
 import json
 from datetime import datetime
@@ -36,6 +36,7 @@ async def test_parcel_update_coordinator(hass, aioclient_mock):
     # Mock ConfigEntry
     mock_entry = AsyncMock()
     mock_entry.data = {"api_key": "test_api_key"}
+    mock_entry.async_on_unload = Mock()
 
     # Initialize the coordinator
     coordinator = ParcelUpdateCoordinator(hass, mock_entry)

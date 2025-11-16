@@ -145,7 +145,7 @@ def get_http_error_message(
     if status_code == 429:
         return (
             "Rate limit exceeded (HTTP 429). "
-            "The Parcel App API allows 20 requests per day. Please try again later."
+            "The Parcel App API allows 20 requests per hour. Please try again later."
         )
 
     if status_code >= 500:
