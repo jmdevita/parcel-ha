@@ -35,6 +35,14 @@ add_parcel:
       default: false
       selector:
         boolean:
+    language:
+      name: "Language"
+      description: "Language for delivery information (ISO 639-1 two-letter code). Availability depends on carrier."
+      example: "en"
+      required: false
+      default: "en"
+      selector:
+        text:
 
 delete_parcel:
   fields:

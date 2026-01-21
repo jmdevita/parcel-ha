@@ -13,7 +13,9 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
     COURIER,
+    DEFAULT_LANGUAGE,
     DOMAIN,
+    LANGUAGE,
     OLD_NUMBER,
     OLD_TYPE,
     PARCEL_NAME,
@@ -30,6 +32,7 @@ ADD_PARCEL_SCHEMA = vol.Schema(
         vol.Required(TRACKING_NUMBER): cv.string,
         vol.Required(COURIER): cv.string,
         vol.Required("send_push_confirmation", default=False): cv.boolean,
+        vol.Optional(LANGUAGE, default=DEFAULT_LANGUAGE): cv.string,
     }
 )
 
@@ -184,6 +187,7 @@ async def async_register_services(hass: HomeAssistant):
         tracking_number = str(call.data[TRACKING_NUMBER])
         courier = call.data[COURIER]
         send_push = call.data.get("send_push_confirmation", False)
+        language = call.data.get(LANGUAGE, DEFAULT_LANGUAGE)
 
         # Prepare the payload for the official API
         payload = {
@@ -191,6 +195,7 @@ async def async_register_services(hass: HomeAssistant):
             "carrier_code": courier,
             "description": parcel_name,
             "send_push_confirmation": send_push,
+            "language": language,
         }
         headers = {
             "api-key": api_key,
