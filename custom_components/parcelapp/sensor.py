@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, date
 import logging
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
@@ -404,6 +404,8 @@ class CollectionShipment(CoordinatorEntity, SensorEntity):
 
     # Disabled by default
     _attr_entity_registry_enabled_default = False
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = "parcels"
 
     def __init__(self, coordinator: ParcelUpdateCoordinator) -> None:
         """Initialize the sensor."""
