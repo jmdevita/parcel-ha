@@ -103,6 +103,9 @@ async def test_active_shipment_sensor(hass):
         'full_description': 'Wireless Mouse Set',
         'tracking_number': '8217400125612976',
         'date_expected': tomorrow,
+        'date_expected_end': None,
+        'timestamp_expected': None,
+        'timestamp_expected_end': None,
         'days_until_next_delivery': 1,
         'event': 'Departure Scan',
         'event_date': yesterday,
@@ -163,6 +166,9 @@ async def test_recent_shipment_sensor_no_data(hass):
     assert sensor.state == 'No parcels for now..'
     assert sensor.extra_state_attributes == {
         'date_expected': 'None',
+        'date_expected_end': None,
+        'timestamp_expected': None,
+        'timestamp_expected_end': None,
         'days_until_next_delivery': 'No active parcels.',
         'event': 'None',
         'event_date': 'None',
@@ -198,6 +204,9 @@ async def test_active_shipment_sensor_no_data(hass):
     assert sensor.state == 'No parcels for now..'
     assert sensor.extra_state_attributes == {
         'date_expected': 'None',
+        'date_expected_end': None,
+        'timestamp_expected': None,
+        'timestamp_expected_end': None,
         'days_until_next_delivery': 'No active parcels.',
         'event': 'None',
         'event_date': 'None',
@@ -289,6 +298,9 @@ async def test_active_shipment_sensor_multi_data(hass):
     assert sensor.state == '1 parcel'
     assert sensor.extra_state_attributes == {
         'date_expected': today,
+        'date_expected_end': None,
+        'timestamp_expected': None,
+        'timestamp_expected_end': None,
         'days_until_next_delivery': 0,
         'event': 'Postmark Mailpiece by Carrier',
         'event_date': yesterday,
