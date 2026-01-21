@@ -122,6 +122,10 @@ class RecentShipment(CoordinatorEntity, SensorEntity):
                 carrier = carrier_codes[data[0]["carrier_code"]]
             except KeyError:
                 carrier = "Unknown"
+            try:
+                extra_information = data[0]["extra_information"]
+            except KeyError:
+                extra_information = None
             attributes = {
                 "full_description": description,
                 "tracking_number": tracking_number,
@@ -130,6 +134,7 @@ class RecentShipment(CoordinatorEntity, SensorEntity):
                 "event_location": event_location,
                 "status": status,
                 "carrier": carrier,
+                "extra_information": extra_information,
             }
             self._hass_custom_attributes = attributes
 
@@ -386,6 +391,7 @@ class ActiveShipment(CoordinatorEntity, SensorEntity):
                 "parcels_arriving_today": arriving_today,
                 "full_description": description,
                 "tracking_number": tracking_number,
+                "extra_information": next_traceable_shipment.extra_information,
                 "date_expected": date_expected,
                 "days_until_next_delivery": days_until_next_delivery,
                 "event": event,

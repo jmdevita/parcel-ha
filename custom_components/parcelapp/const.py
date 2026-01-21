@@ -70,6 +70,7 @@ EMPTY_ATTRIBUTES = {
     "parcels_arriving_today": 0,
     "full_description": "No description",
     "tracking_number": "None",
+    "extra_information": None,
     "date_expected": "None",
     "days_until_next_delivery": "No active parcels.",
     "event": "None",
