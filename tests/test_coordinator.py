@@ -25,6 +25,13 @@ async def test_parcel_update_coordinator(hass, aioclient_mock):
     with open(fixtures_path / "recent.json") as file:
         recent_deliveries = json.load(file)
     recent_deliveries['carrer_codes']  = {'pholder': 'Placeholder', 'none': 'None'}
+    # Mock the carrier codes endpoint
+    carrier_codes_url = "https://api.parcel.app/external/supported_carriers.json"
+    aioclient_mock.get(
+        carrier_codes_url,
+        json={'fedex': 'Fedex', 'usps': 'USPS'},
+        status=200,
+    )
     # Mock the API endpoint for a successful response
     mock_api_url = "https://api.parcel.app/external/deliveries/?filter_mode=recent"
     aioclient_mock.get(
