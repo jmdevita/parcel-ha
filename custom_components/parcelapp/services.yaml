@@ -28,13 +28,6 @@ add_parcel:
       required: true
       selector:
         text:
-    send_push_confirmation:
-      name: "Send Push Notification"
-      description: "Send a push notification when the parcel is added"
-      required: false
-      default: false
-      selector:
-        boolean:
     language:
       name: "Language"
       description: "Language for delivery information (ISO 639-1 two-letter code). Availability depends on carrier."
@@ -43,6 +36,13 @@ add_parcel:
       default: "en"
       selector:
         text:
+    send_push_confirmation:
+      name: "Send Push Notification"
+      description: "Send a push notification when the parcel is added"
+      required: false
+      default: false
+      selector:
+        boolean:
 
 delete_parcel:
   fields:
