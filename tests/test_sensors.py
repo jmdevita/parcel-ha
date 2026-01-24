@@ -25,6 +25,12 @@ recent_data["carrier_codes"] = {'pholder': 'Placeholder', 'none': 'None', 'fedex
 recent_data["utc_timestamp"] = mock_datetime
 # Modify the active parcel to be out for delivery tomorrow
 recent_data["deliveries"][0]["date_expected"] = datetime.strftime(tomorrow,"%Y-%m-%d") + "T00:00:00Z"
+# Set delivery window end to tomorrow as well
+recent_data["deliveries"][0]["date_expected_end"] = datetime.strftime(tomorrow,"%Y-%m-%d") + "T17:00:00Z"
+# Set timestamp values for delivery window
+tomorrow_start = datetime.combine(tomorrow, datetime.min.time())
+recent_data["deliveries"][0]["timestamp_expected"] = int(tomorrow_start.timestamp())
+recent_data["deliveries"][0]["timestamp_expected_end"] = int(tomorrow_start.timestamp()) + 61200  # +17 hours
 # Modify the active parcel's event date to be yesterday
 recent_data["deliveries"][0]["events"][0]["date"] = datetime.strftime(yesterday,"%A, %B %-d, %Y %-I:%M %p")
 
@@ -66,15 +72,17 @@ async def test_recent_shipment_sensor(hass):
 
     # Assert the state and attributes for the first delivery in the fixture
     assert sensor.state == "Delivery in transit."
-    assert sensor.extra_state_attributes == {
-        "full_description": "Wireless Mouse Set",
-        "tracking_number": "8217400125612976",
-        "date_expected": tomorrow,
-        "event_date": yesterday,
-        "event_location": "Harrisburg, PA, USA",
-        "status": "Delivery in transit.",
-        "carrier": "Fedex",
-    }
+    attrs = sensor.extra_state_attributes
+    assert attrs["full_description"] == "Wireless Mouse Set"
+    assert attrs["tracking_number"] == "8217400125612976"
+    assert attrs["date_expected"] == tomorrow
+    assert attrs["date_expected_end"] == tomorrow
+    assert attrs["timestamp_expected"] == datetime.fromtimestamp(recent_data["deliveries"][0]["timestamp_expected"])
+    assert attrs["timestamp_expected_end"] == datetime.fromtimestamp(recent_data["deliveries"][0]["timestamp_expected_end"])
+    assert attrs["event_date"] == yesterday
+    assert attrs["event_location"] == "Harrisburg, PA, USA"
+    assert attrs["status"] == "Delivery in transit."
+    assert attrs["carrier"] == "Fedex"
 
 
 @pytest.mark.asyncio
@@ -103,6 +111,9 @@ async def test_active_shipment_sensor(hass):
         'full_description': 'Wireless Mouse Set',
         'tracking_number': '8217400125612976',
         'date_expected': tomorrow,
+        'date_expected_end': None,
+        'timestamp_expected': None,
+        'timestamp_expected_end': None,
         'days_until_next_delivery': 1,
         'event': 'Departure Scan',
         'event_date': yesterday,
@@ -163,6 +174,9 @@ async def test_recent_shipment_sensor_no_data(hass):
     assert sensor.state == 'No parcels for now..'
     assert sensor.extra_state_attributes == {
         'date_expected': 'None',
+        'date_expected_end': None,
+        'timestamp_expected': None,
+        'timestamp_expected_end': None,
         'days_until_next_delivery': 'No active parcels.',
         'event': 'None',
         'event_date': 'None',
@@ -198,6 +212,9 @@ async def test_active_shipment_sensor_no_data(hass):
     assert sensor.state == 'No parcels for now..'
     assert sensor.extra_state_attributes == {
         'date_expected': 'None',
+        'date_expected_end': None,
+        'timestamp_expected': None,
+        'timestamp_expected_end': None,
         'days_until_next_delivery': 'No active parcels.',
         'event': 'None',
         'event_date': 'None',
@@ -260,6 +277,9 @@ async def test_recent_shipment_sensor_multi_data(hass):
         "full_description": "Collectable Parcel",
         "tracking_number": "12345678",
         "date_expected": "Unknown",
+        "date_expected_end": None,
+        "timestamp_expected": None,
+        "timestamp_expected_end": None,
         "event_date": yesterday,
         "event_location": "Somewhere",
         "status": "Delivery expecting a pickup by the recipient.",
@@ -289,6 +309,9 @@ async def test_active_shipment_sensor_multi_data(hass):
     assert sensor.state == '1 parcel'
     assert sensor.extra_state_attributes == {
         'date_expected': today,
+        'date_expected_end': None,
+        'timestamp_expected': None,
+        'timestamp_expected_end': None,
         'days_until_next_delivery': 0,
         'event': 'Postmark Mailpiece by Carrier',
         'event_date': yesterday,
@@ -332,3 +355,69 @@ async def test_collectable_shipment_sensor_multi_data(hass):
             }
         ],
     }
+
+
+@pytest.mark.asyncio
+async def test_delivery_window_attributes(hass):
+    """Test that delivery window attributes are properly exposed on both sensors."""
+    # Create test data with delivery window fields
+    tomorrow_ts = int(datetime.combine(tomorrow, datetime.min.time()).timestamp())
+    tomorrow_end_ts = tomorrow_ts + 14400  # +4 hours
+
+    delivery_window_data = {
+        "success": True,
+        "deliveries": [
+            {
+                "carrier_code": "fedex",
+                "description": "Package with delivery window",
+                "status_code": 4,  # Out for delivery
+                "tracking_number": "1234567890",
+                "date_expected": datetime.strftime(tomorrow, "%Y-%m-%d") + "T09:00:00Z",
+                "date_expected_end": datetime.strftime(tomorrow, "%Y-%m-%d") + "T13:00:00Z",
+                "timestamp_expected": tomorrow_ts,
+                "timestamp_expected_end": tomorrow_end_ts,
+                "events": [
+                    {
+                        "event": "Out for Delivery",
+                        "date": datetime.strftime(today, "%A, %B %-d, %Y %-I:%M %p"),
+                        "location": "Local Facility"
+                    }
+                ]
+            }
+        ],
+        "carrier_codes": {"fedex": "FedEx"},
+        "carrier_codes_updated": mock_datetime,
+        "utc_timestamp": mock_datetime,
+    }
+
+    # Mock the coordinator
+    mock_coordinator = AsyncMock(spec=ParcelUpdateCoordinator)
+    mock_coordinator.config_entry = AsyncMock(spec=ParcelUpdateCoordinator)
+    mock_coordinator.data = delivery_window_data
+    mock_coordinator.config_entry.entry_id = "test_entry_12345"
+
+    # Test RecentShipment sensor
+    recent_sensor = RecentShipment(mock_coordinator)
+    recent_sensor.hass = hass
+    recent_sensor.async_write_ha_state = Mock()
+    recent_sensor._handle_coordinator_update()
+
+    # Verify delivery window attributes on RecentShipment
+    attrs = recent_sensor.extra_state_attributes
+    assert attrs["date_expected"] == tomorrow
+    assert attrs["date_expected_end"] == tomorrow
+    assert attrs["timestamp_expected"] == datetime.fromtimestamp(tomorrow_ts)
+    assert attrs["timestamp_expected_end"] == datetime.fromtimestamp(tomorrow_end_ts)
+
+    # Test ActiveShipment sensor
+    active_sensor = ActiveShipment(mock_coordinator)
+    active_sensor.hass = hass
+    active_sensor.async_write_ha_state = Mock()
+    active_sensor._handle_coordinator_update()
+
+    # Verify delivery window attributes on ActiveShipment
+    attrs = active_sensor.extra_state_attributes
+    assert attrs["date_expected"] == tomorrow
+    assert attrs["date_expected_end"] == tomorrow
+    assert attrs["timestamp_expected"] == datetime.fromtimestamp(tomorrow_ts)
+    assert attrs["timestamp_expected_end"] == datetime.fromtimestamp(tomorrow_end_ts)
