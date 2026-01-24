@@ -104,6 +104,21 @@ class RecentShipment(CoordinatorEntity, SensorEntity):
             except KeyError:
                 date_expected = "Unknown"
             try:
+                date_expected_end_raw = data[0]["date_expected_end"]
+                date_expected_end = dateparse(date_expected_end_raw)
+            except KeyError:
+                date_expected_end = None
+            try:
+                timestamp_expected_raw = data[0]["timestamp_expected"]
+                timestamp_expected = datetime.fromtimestamp(timestamp_expected_raw)
+            except (KeyError, TypeError):
+                timestamp_expected = None
+            try:
+                timestamp_expected_end_raw = data[0]["timestamp_expected_end"]
+                timestamp_expected_end = datetime.fromtimestamp(timestamp_expected_end_raw)
+            except (KeyError, TypeError):
+                timestamp_expected_end = None
+            try:
                 event_date_raw = data[0]["events"][0]["date"]
                 event_date = dateparse(event_date_raw)
             except KeyError:
@@ -126,6 +141,9 @@ class RecentShipment(CoordinatorEntity, SensorEntity):
                 "full_description": description,
                 "tracking_number": tracking_number,
                 "date_expected": date_expected,
+                "date_expected_end": date_expected_end,
+                "timestamp_expected": timestamp_expected,
+                "timestamp_expected_end": timestamp_expected_end,
                 "event_date": event_date,
                 "event_location": event_location,
                 "status": status,
