@@ -42,7 +42,7 @@
                 },
                 "courier": {
                     "name": "Courier",
-                    "description": "The courier service handling the parcel. Refer to the list of supported carrier keys, for example, for ACS Courier the key is 'acs'. The list is available at https://api.parcel.app/external/supported_carriers.json."
+                    "description": "The courier service handling the parcel. Refer to the list of supported carrier keys, for example, for ACS Courier the key is 'acs'. The list is available at {supported_carriers_url}."
                 }
             }
         },
@@ -56,7 +56,7 @@
                 },
                 "type": {
                     "name": "Courier",
-                    "description": "The courier service handling the parcel. Refer to the list of supported carrier keys, for example, for ACS Courier the key is 'acs'. The list is available at https://api.parcel.app/external/supported_carriers.json."
+                    "description": "The courier service handling the parcel. Refer to the list of supported carrier keys, for example, for ACS Courier the key is 'acs'. The list is available at {supported_carriers_url}."
                 }
             }
         },
@@ -74,7 +74,7 @@
                 },
                 "courier": {
                     "name": "Courier",
-                    "description": "The updated courier service handling the parcel. Refer to the list of supported carrier keys, for example, for ACS Courier the key is 'acs'. The list is available at https://api.parcel.app/external/supported_carriers.json."
+                    "description": "The updated courier service handling the parcel. Refer to the list of supported carrier keys, for example, for ACS Courier the key is 'acs'. The list is available at {supported_carriers_url}."
                 },
                 "old_number": {
                     "name": "Old Tracking Number",
