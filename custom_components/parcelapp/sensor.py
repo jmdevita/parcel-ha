@@ -106,11 +106,11 @@ class RecentShipment(CoordinatorEntity, SensorEntity):
             try:
                 event_date_raw = data[0]["events"][0]["date"]
                 event_date = dateparse(event_date_raw)
-            except KeyError:
+            except (KeyError, IndexError):
                 event_date = "Unknown"
             try:
                 event_location = data[0]["events"][0]["location"]
-            except KeyError:
+            except (KeyError, IndexError):
                 event_location = "Unknown"
             try:
                 status = DELIVERY_STATUS_CODES[data[0]["status_code"]]
