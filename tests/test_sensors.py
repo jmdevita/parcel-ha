@@ -97,8 +97,9 @@ async def test_active_shipment_sensor(hass):
     sensor._handle_coordinator_update()
 
     # Assert the state and attributes
-    assert sensor.state == "in 1 day"
+    assert sensor.state == 2
     assert sensor.extra_state_attributes == {
+        'status_text': 'in 1 day',
         'number_of_active_parcels': 2,
         'parcels_arriving_today': 0,
         'full_description': 'Wireless Mouse Set',
@@ -198,8 +199,9 @@ async def test_active_shipment_sensor_no_data(hass):
     sensor._handle_coordinator_update()
 
     # Assert the state and attributes
-    assert sensor.state == 'No parcels for now..'
+    assert sensor.state == 0
     assert sensor.extra_state_attributes == {
+        'status_text': 'No parcels for now..',
         'date_expected': 'None',
         'days_until_next_delivery': 'No active parcels.',
         'event': 'None',
@@ -291,8 +293,9 @@ async def test_active_shipment_sensor_multi_data(hass):
 
     # Assert the state and attributes
     # one parcel arriving today, not an error!
-    assert sensor.state == '1 parcel'
+    assert sensor.state == 2
     assert sensor.extra_state_attributes == {
+        'status_text': '1 parcel',
         'date_expected': today,
         'days_until_next_delivery': 0,
         'event': 'Postmark Mailpiece by Carrier',
