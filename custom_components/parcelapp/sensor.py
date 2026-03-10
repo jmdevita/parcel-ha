@@ -242,7 +242,7 @@ class ActiveShipment(CoordinatorEntity, SensorEntity):
                         timestamp_expected = datetime.fromtimestamp(
                             timestamp_expected_raw
                         )
-                    except (ValueError, TypeError, OSError):
+                    except (ValueError, TypeError, OSError, OverflowError):
                         timestamp_expected = None
                 except KeyError:
                     timestamp_expected = None
@@ -252,7 +252,7 @@ class ActiveShipment(CoordinatorEntity, SensorEntity):
                         timestamp_expected_end = datetime.fromtimestamp(
                             timestamp_expected_end_raw
                         )
-                    except (ValueError, TypeError, OSError):
+                    except (ValueError, TypeError, OSError, OverflowError):
                         timestamp_expected_end = None
                 except KeyError:
                     timestamp_expected_end = None
