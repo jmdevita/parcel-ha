@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, date
 import logging
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
@@ -139,6 +139,9 @@ class RecentShipment(CoordinatorEntity, SensorEntity):
 class ActiveShipment(CoordinatorEntity, SensorEntity):
     """Representation of a sensor that manipulates the data from the API, presents the next parcel due, and presents multiple attributes."""
 
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = "parcels"
+
     def __init__(self, coordinator: ParcelUpdateCoordinator) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
@@ -180,10 +183,11 @@ class ActiveShipment(CoordinatorEntity, SensorEntity):
         today = date.today()
 
         if parcel_api_data["deliveries"] == []:
-            self._attr_state = "No parcels for now.."
+            self._attr_state = 0
             self._attr_icon = "mdi:close-circle"
             self._hass_custom_attributes = EMPTY_ATTRIBUTES.copy()
             self._hass_custom_attributes["delivered_today"] = 0
+            self._hass_custom_attributes["status_text"] = "No parcels for now.."
         elif parcel_api_data["deliveries"]:
             data = parcel_api_data["deliveries"]
             carrier_codes = parcel_api_data["carrier_codes"]
@@ -380,8 +384,9 @@ class ActiveShipment(CoordinatorEntity, SensorEntity):
                 next_delivery_carrier = "Unknown"
             delivered_today = len(delivered_today_shipments)
           # Set the attributes
-            self._attr_state = verbose
+            self._attr_state = len(active_shipments)
             self._hass_custom_attributes = {
+                "status_text": verbose,
                 "number_of_active_parcels": len(active_shipments),
                 "parcels_arriving_today": arriving_today,
                 "full_description": description,
@@ -404,6 +409,8 @@ class CollectionShipment(CoordinatorEntity, SensorEntity):
 
     # Disabled by default
     _attr_entity_registry_enabled_default = False
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = "parcels"
 
     def __init__(self, coordinator: ParcelUpdateCoordinator) -> None:
         """Initialize the sensor."""
