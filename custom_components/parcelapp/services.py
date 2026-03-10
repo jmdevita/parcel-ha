@@ -12,6 +12,7 @@ from homeassistant.helpers import config_validation as cv, device_registry as dr
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
+    CARRIER_CODE_ENDPOINT,
     COURIER,
     DOMAIN,
     OLD_NUMBER,
@@ -489,12 +490,17 @@ async def async_register_services(hass: HomeAssistant):
             )
             raise HomeAssistantError(f"Unexpected error: {err}") from err
 
+    description_placeholders = {
+        "supported_carriers_url": CARRIER_CODE_ENDPOINT,
+    }
+
     hass.services.async_register(
         DOMAIN,
         "add_parcel",
         async_add_parcel,
         schema=ADD_PARCEL_SCHEMA,
         supports_response=SupportsResponse.OPTIONAL,
+        description_placeholders=description_placeholders,
     )
 
     hass.services.async_register(
@@ -503,6 +509,7 @@ async def async_register_services(hass: HomeAssistant):
         async_delete_parcel,
         schema=DELETE_PARCEL_SCHEMA,
         supports_response=SupportsResponse.OPTIONAL,
+        description_placeholders=description_placeholders,
     )
 
     hass.services.async_register(
@@ -511,4 +518,5 @@ async def async_register_services(hass: HomeAssistant):
         async_edit_parcel,
         schema=EDIT_PARCEL_SCHEMA,
         supports_response=SupportsResponse.OPTIONAL,
+        description_placeholders=description_placeholders,
     )

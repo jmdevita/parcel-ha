@@ -106,11 +106,11 @@ class RecentShipment(CoordinatorEntity, SensorEntity):
             try:
                 event_date_raw = data[0]["events"][0]["date"]
                 event_date = dateparse(event_date_raw)
-            except KeyError:
+            except (KeyError, IndexError):
                 event_date = "Unknown"
             try:
                 event_location = data[0]["events"][0]["location"]
-            except KeyError:
+            except (KeyError, IndexError):
                 event_location = "Unknown"
             try:
                 status = DELIVERY_STATUS_CODES[data[0]["status_code"]]
@@ -242,7 +242,7 @@ class ActiveShipment(CoordinatorEntity, SensorEntity):
                         timestamp_expected = datetime.fromtimestamp(
                             timestamp_expected_raw
                         )
-                    except (ValueError, TypeError, OSError):
+                    except (ValueError, TypeError, OSError, OverflowError):
                         timestamp_expected = None
                 except KeyError:
                     timestamp_expected = None
@@ -252,7 +252,7 @@ class ActiveShipment(CoordinatorEntity, SensorEntity):
                         timestamp_expected_end = datetime.fromtimestamp(
                             timestamp_expected_end_raw
                         )
-                    except (ValueError, TypeError, OSError):
+                    except (ValueError, TypeError, OSError, OverflowError):
                         timestamp_expected_end = None
                 except KeyError:
                     timestamp_expected_end = None
