@@ -5,6 +5,8 @@ import json
 import logging
 from typing import Any
 
+import aiohttp
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -44,7 +46,7 @@ class ParcelUpdateCoordinator(DataUpdateCoordinator):
         carrier_codes_updated = self.carrier_codes["carrier_codes_updated"]
         try:
             updated = datetime.strptime(carrier_codes_updated, "%Y-%m-%d %H:%M:%S.%f")
-        except:
+        except (ValueError, TypeError):
             updated = datetime.now() + timedelta(hours=-13)
         if updated < datetime.now() + timedelta(hours=-12):
             try:
@@ -52,7 +54,7 @@ class ParcelUpdateCoordinator(DataUpdateCoordinator):
                 response.raise_for_status()
                 payload = await response.text()
                 carrier_codes_raw_json = json.loads(payload)
-            except:
+            except (aiohttp.ClientError, json.JSONDecodeError, TimeoutError):
                 carrier_codes_raw_json = {}
             carrier_codes_raw_json.update(pholder="Placeholder")
             carrier_codes_raw_json.update(none="None")

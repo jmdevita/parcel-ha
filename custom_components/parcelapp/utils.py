@@ -11,7 +11,7 @@ def dateparse(input_date_raw):
         date_converted = datetime.fromisoformat(
             input_date_raw
         )
-    except:
+    except (ValueError, TypeError, AttributeError):
         try:
             # Extra loop in case of double spacing in the reported date string and removing any time window
             input_date_raw_truncated = input_date_raw.replace("  "," ")[:19]
@@ -20,19 +20,19 @@ def dateparse(input_date_raw):
             )
             if date_converted is datetime:
                 date_converted = date_converted.date()
-        except:
+        except (ValueError, TypeError, AttributeError):
             try:
                 # If it's not in ISO format, try to parse it with dateutil and try for the day being first
                     date_expected_dayfirst = parse(input_date_raw,dayfirst=True,fuzzy=True)
                     date_expected_dayfirst = date_expected_dayfirst.date()
-            except:
+            except (ValueError, TypeError, AttributeError):
                 # If this fails, set this attempt to a static value
                 date_expected_dayfirst = date(1970,1,1)
             try:
                 # Now try again with month first
                 date_expected_monthfirst = parse(input_date_raw,monthfirst=True,fuzzy=True)
                 date_expected_monthfirst = date_expected_monthfirst.date()
-            except:
+            except (ValueError, TypeError, AttributeError):
                 # Again, if this fails, set to a static value
                 date_expected_monthfirst = date(1970,1,1)
             # Next, if either of the attempts are TODAY, assume the parcel has been delivered today. Delivered parcels aren't included for long

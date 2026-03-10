@@ -115,7 +115,7 @@ class RecentShipment(CoordinatorEntity, SensorEntity):
             try:
                 status = DELIVERY_STATUS_CODES[data[0]["status_code"]]
                 self._attr_state = status
-            except:
+            except (KeyError, IndexError, TypeError):
                 status = "Unknown"
                 self._attr_state = status
             try:
@@ -211,7 +211,7 @@ class ActiveShipment(CoordinatorEntity, SensorEntity):
                 # Extra information is rarely present, so don't raise a KeyError
                 try:
                     extra_information = item["extra_information"]
-                except:
+                except KeyError:
                     extra_information = None
                 # We try to parse the dates for use later
                 # If the status code is 0 or 3, or if there is otherwise no date expected, we will have to try to recreate the eta/delivery date
@@ -221,7 +221,7 @@ class ActiveShipment(CoordinatorEntity, SensorEntity):
                         try:
                             # Take the latest event date that _should_ be delivery/eta
                             date_expected_raw = events[0]["date"]
-                        except:
+                        except (KeyError, IndexError, TypeError):
                             date_expected_raw = None
                     else:
                         date_expected_raw = None
@@ -242,9 +242,9 @@ class ActiveShipment(CoordinatorEntity, SensorEntity):
                         timestamp_expected = datetime.fromtimestamp(
                             timestamp_expected_raw
                         )
-                    except KeyError:
+                    except (ValueError, TypeError, OSError):
                         timestamp_expected = None
-                except:
+                except KeyError:
                     timestamp_expected = None
                 try:
                     timestamp_expected_end_raw = item["timestamp_expected_end"]
@@ -252,9 +252,9 @@ class ActiveShipment(CoordinatorEntity, SensorEntity):
                         timestamp_expected_end = datetime.fromtimestamp(
                             timestamp_expected_end_raw
                         )
-                    except KeyError:
+                    except (ValueError, TypeError, OSError):
                         timestamp_expected_end = None
-                except:
+                except KeyError:
                     timestamp_expected_end = None
                 new_shipment = Shipment(
                     carrier_code=carrier_code,
@@ -379,7 +379,7 @@ class ActiveShipment(CoordinatorEntity, SensorEntity):
                 next_delivery_status = DELIVERY_STATUS_CODES[
                     next_traceable_shipment.status_code
                 ]
-            except:
+            except (KeyError, TypeError):
                 next_delivery_status = "Unknown"
             try:
                 next_delivery_carrier = carrier_codes[
@@ -471,13 +471,13 @@ class CollectionShipment(CoordinatorEntity, SensorEntity):
                 # The collection location _should_ be the location in the latest event
                 try:
                     location = events[0]["location"]
-                except:
+                except (KeyError, IndexError, TypeError):
                     location = "Unknown"
                 # The collection date/time _should_ be the date in the latest event
                 # For this version this will only return the datetime as given by the carrier
                 try:
                     delivered = events[0]["date"]
-                except:
+                except (KeyError, IndexError, TypeError):
                     delivered = "Unknown"
                 if status_code == 3:
                     new_shipment = {
