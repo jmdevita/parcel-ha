@@ -12,7 +12,13 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .const import DOMAIN, PARCEL_URL, UPDATE_INTERVAL_SECONDS, CARRIER_CODE_ENDPOINT
+from .const import (
+    DOMAIN,
+    PARCEL_URL,
+    UPDATE_INTERVAL_SECONDS,
+    CARRIER_CODE_ENDPOINT,
+    DEFAULT_FILTER_MODE,
+)
 
 _LOGGER = logging.getLogger(__name__)
 type ParcelConfigEntry = ConfigEntry[ParcelUpdateCoordinator]
@@ -30,6 +36,7 @@ class ParcelUpdateCoordinator(DataUpdateCoordinator):
         update_interval_seconds = entry.options.get(
             "update_interval", UPDATE_INTERVAL_SECONDS
         )
+        self.filter_mode = entry.options.get("filter_mode", DEFAULT_FILTER_MODE)
 
         super().__init__(
             hass,
@@ -42,7 +49,7 @@ class ParcelUpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from the API and return the top value."""
-        API_URL = f"{PARCEL_URL}?filter_mode=recent"
+        API_URL = f"{PARCEL_URL}?filter_mode={self.filter_mode}"
         carrier_codes_updated = self.carrier_codes["carrier_codes_updated"]
         try:
             updated = datetime.strptime(carrier_codes_updated, "%Y-%m-%d %H:%M:%S.%f")

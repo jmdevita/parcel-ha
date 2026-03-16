@@ -19,10 +19,12 @@
                 "data": {
                     "api_key": "API Key (Required)",
                     "account_token": "Account Token (Optional) | BETA",
-                    "update_interval_minutes": "Update Interval"
+                    "update_interval_minutes": "Update Interval",
+                    "filter_mode": "Filter Mode"
                 },
                 "data_description": {
-                    "update_interval_minutes": "How often to check for parcel updates (in minutes). API rate limit: 20 requests per hour."
+                    "update_interval_minutes": "How often to check for parcel updates (in minutes). API rate limit: 20 requests per hour.",
+                    "filter_mode": "Choose which parcels to retrieve. 'Recent' includes recently completed deliveries. 'Active' shows only parcels that are still in transit or pending."
                 }
             }
         }
