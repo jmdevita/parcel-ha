@@ -1,5 +1,6 @@
 """The ParcelApp Services."""
 
+import inspect
 import json
 import logging
 
@@ -198,12 +199,21 @@ def _resolve_courier(
 
     high_confidence = [m for m in mapped if m.confidence >= 0.8]
 
-    if len(high_confidence) == 1:
+    # Deduplicate by parcel_app_code — multiple formats from the same
+    # carrier (e.g. USPS 22 and USPS 91) should not trigger disambiguation.
+    unique_codes = {m.parcel_app_code for m in high_confidence}
+
+    if len(unique_codes) <= 1 and high_confidence:
         best = high_confidence[0]
-    elif len(high_confidence) > 1:
-        options = ", ".join(
-            f"{m.parcel_app_code} ({m.carrier_name})" for m in high_confidence
-        )
+    elif len(unique_codes) > 1:
+        # Show only one entry per distinct carrier
+        seen = set()
+        options_parts = []
+        for m in high_confidence:
+            if m.parcel_app_code not in seen:
+                seen.add(m.parcel_app_code)
+                options_parts.append(f"{m.parcel_app_code} ({m.carrier_name})")
+        options = ", ".join(options_parts)
         raise HomeAssistantError(
             f"Multiple carriers match tracking number '{tracking_number}': {options}. "
             f"Please provide the 'courier' field to disambiguate."
@@ -585,9 +595,16 @@ async def async_register_services(hass: HomeAssistant):
             "best_match": matches[0].parcel_app_code if matches else None,
         }
 
-    description_placeholders = {
-        "supported_carriers_url": CARRIER_CODE_ENDPOINT,
-    }
+    # description_placeholders was added in HA 2025.12
+    _supports_placeholders = "description_placeholders" in inspect.signature(
+        hass.services.async_register
+    ).parameters
+
+    placeholders_kwargs: dict = {}
+    if _supports_placeholders:
+        placeholders_kwargs["description_placeholders"] = {
+            "supported_carriers_url": CARRIER_CODE_ENDPOINT,
+        }
 
     hass.services.async_register(
         DOMAIN,
@@ -595,7 +612,7 @@ async def async_register_services(hass: HomeAssistant):
         async_add_parcel,
         schema=ADD_PARCEL_SCHEMA,
         supports_response=SupportsResponse.OPTIONAL,
-        description_placeholders=description_placeholders,
+        **placeholders_kwargs,
     )
 
     hass.services.async_register(
@@ -604,7 +621,7 @@ async def async_register_services(hass: HomeAssistant):
         async_delete_parcel,
         schema=DELETE_PARCEL_SCHEMA,
         supports_response=SupportsResponse.OPTIONAL,
-        description_placeholders=description_placeholders,
+        **placeholders_kwargs,
     )
 
     hass.services.async_register(
@@ -613,7 +630,7 @@ async def async_register_services(hass: HomeAssistant):
         async_edit_parcel,
         schema=EDIT_PARCEL_SCHEMA,
         supports_response=SupportsResponse.OPTIONAL,
-        description_placeholders=description_placeholders,
+        **placeholders_kwargs,
     )
 
     hass.services.async_register(
