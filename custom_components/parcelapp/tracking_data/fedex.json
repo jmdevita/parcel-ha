@@ -1,0 +1,303 @@
+{
+  "name": "FedEx",
+  "courier_code": "fedex",
+  "tracking_numbers": [
+    {
+      "name": "FedEx Express (12)",
+      "id": "fedex_12",
+      "regex": "\\s*(?<SerialNumber>([0-9]\\s*){11})(?<CheckDigit>[0-9]\\s*)",
+      "validation": {
+        "checksum": {
+          "name": "sum_product_with_weightings_and_modulo",
+          "weightings": [
+            3,
+            1,
+            7,
+            3,
+            1,
+            7,
+            3,
+            1,
+            7,
+            3,
+            1
+          ],
+          "modulo1": 11,
+          "modulo2": 10
+        }
+      },
+      "tracking_url": "https://www.fedex.com/apps/fedextrack/?tracknumbers=%s",
+      "test_numbers": {
+        "valid": [
+          "986578788855",
+          "477179081230",
+          "799531274483",
+          "790535312317",
+          " 7 9 0 5 3 5 3 1 2 3 1 7 ",
+          "974367662710"
+        ],
+        "invalid": [
+          "996578788855"
+        ]
+      }
+    },
+    {
+      "name": "FedEx Express (34)",
+      "id": "fedex_34",
+      "regex": [
+        "\\s*1\\s*0\\s*[0-9]\\s*[0-9]\\s*[0-9]\\s*",
+        "([0-9]\\s*){10}",
+        "(?<DestinationZip>([0-9]\\s*){5})",
+        "(?<SerialNumber>([0-9]\\s*){13})",
+        "(?<CheckDigit>[0-9]\\s*)"
+      ],
+      "validation": {
+        "checksum": {
+          "name": "sum_product_with_weightings_and_modulo",
+          "weightings": [
+            1,
+            7,
+            3,
+            1,
+            7,
+            3,
+            1,
+            7,
+            3,
+            1,
+            7,
+            3,
+            1
+          ],
+          "modulo1": 11,
+          "modulo2": 10
+        }
+      },
+      "tracking_url": "https://www.fedex.com/apps/fedextrack/?tracknumbers=%s",
+      "test_numbers": {
+        "valid": [
+          "1001921334250001000300779017972697",
+          "1001921380360001000300639585804382",
+          "1001901781990001000300617767839437",
+          " 1 0 0 1 9 0 1 7 8 1 9 9 0 0 0 1 0 0 0 3 0 0 6 1 7 7 6 7 8 3 9 4 3 7 ",
+          "1002297871540001000300790695517286",
+          "1027590111820004833500785458233610"
+        ],
+        "invalid": [
+          "1001901781990001000300617767839438"
+        ]
+      }
+    },
+    {
+      "name": "FedEx SmartPost",
+      "id": "fedex_smartpost",
+      "description": "Shipped by FedEx, Delivered by USPS",
+      "regex": [
+        "\\s*(?:",
+        "(?:(?<RoutingApplicationId>4\\s*2\\s*0\\s*)(?<DestinationZip>([0-9]\\s*){5}))?",
+        "(?<ApplicationIdentifier>9\\s*2\\s*)",
+        ")?",
+        "(?<SerialNumber>",
+        "(?<SCNC>6\\s*1\\s*)",
+        "(?<ServiceType>2\\s*9\\s*)",
+        "(?<ShipperId>([0-9]\\s*){8})",
+        "(?<PackageId>([0-9]\\s*){11}|([0-9]\\s*){7})",
+        ")",
+        "(?<CheckDigit>([0-9]\\s*))"
+      ],
+      "additional": [
+        {
+          "name": "Service Type",
+          "regex_group_name": "ServiceType",
+          "lookup": [
+            {
+              "matches_regex": ".",
+              "name": "Delivered by USPS"
+            }
+          ]
+        }
+      ],
+      "partners": [{
+        "partner_id": "usps_91",
+        "partner_type": "carrier",
+        "description": "FedEx SmartPost is a shipping service that utilizes FedEx for the initial transport and the United States Postal Service for final delivery."
+      }],
+      "validation": {
+        "checksum": {
+          "name": "mod10",
+          "evens_multiplier": 3,
+          "odds_multiplier": 1
+        },
+        "serial_number_format": {
+          "prepend_if": {
+            "matches_regex": "^(?!92).+",
+            "content": "92"
+          }
+        }
+      },
+      "tracking_url": "https://www.fedex.com/apps/fedextrack/?tracknumbers=%s",
+      "test_numbers": {
+        "valid": [
+          "9261292700768711948021",
+          "420 11213 92 6129098349792366623 8",
+          "92 6129098349792366623 8"
+        ],
+        "invalid": [
+          "9261292700768711948020",
+          "92001903060085300042901077",
+          "420 11213 61290983497923666231",
+          "92 6129098349792366623 5",
+          "9400 1112 0108 0805 4830 16",
+          "9361 2898 7870 0317 6337 95"
+        ]
+      }
+    },
+    {
+      "name": "FedEx Ground",
+      "id": "fedex_ground",
+      "regex": "\\s*(?<SerialNumber>([0-9]\\s*){14})(?<CheckDigit>([0-9]\\s*))",
+      "validation": {
+        "checksum": {
+          "name": "mod10",
+          "evens_multiplier": 1,
+          "odds_multiplier": 3
+        }
+      },
+      "tracking_url": "https://www.fedex.com/apps/fedextrack/?tracknumbers=%s",
+      "test_numbers": {
+        "valid": [
+          "0414 4176 0228 964",
+          "5682 8361 0012 000",
+          " 5 6 8 2   8 3 6 1   0 0 1 2   0 0 0 ",
+          "5682 8361 0012 734"
+        ],
+        "invalid": [
+          "5682 8361 0012 732"
+        ]
+      }
+    },
+    {
+      "name": "FedEx Ground (SSCC-18)",
+      "id": "fedex_ground_sscc_18",
+      "regex": "\\s*(?<ShippingContainerType>([0-9]\\s*){2})(?<SerialNumber>([0-9]\\s*){15})(?<CheckDigit>[0-9]\\s*)",
+      "tracking_url": "https://www.fedex.com/apps/fedextrack/?tracknumbers=%s",
+      "validation": {
+        "checksum": {
+          "name": "mod10",
+          "evens_multiplier": 3,
+          "odds_multiplier": 1
+        }
+      },
+      "test_numbers": {
+        "valid": [
+          "00 0123 4500 0000 0027",
+          " 0 0   0 1 2 3   4 5 0 0   0 0 0 0   0 0 2 7 "
+        ],
+        "invalid": [
+          "000000000000000001"
+        ]
+      },
+      "additional": [
+        {
+          "name": "Container Type",
+          "regex_group_name": "ShippingContainerType",
+          "lookup": [
+            {
+              "matches": "00",
+              "name": "case/carton"
+            },
+            {
+              "matches": "01",
+              "name": "pallet"
+            },
+            {
+              "matches": "02",
+              "name": "larger than a pallet"
+            },
+            {
+              "matches": "04",
+              "name": "internally defined for intra-company use"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "FedEx Ground 96 (22)",
+      "id": "fedex_ground_96",
+      "regex": [
+        "\\s*(?<ApplicationIdentifier>9\\s*6\\s*)",
+        "(?<SCNC>([0-9]\\s*){2})",
+        "(?<ServiceType>([0-9]\\s*){3})",
+        "(?<SerialNumber>(?<ShipperId>([0-9]\\s*){7})(?<PackageId>([0-9]\\s*){7}))",
+        "(?<CheckDigit>[0-9]\\s*)"
+      ],
+      "validation": {
+        "checksum": {
+          "name": "mod10",
+          "evens_multiplier": 1,
+          "odds_multiplier": 3
+        }
+      },
+      "tracking_url": "https://www.fedex.com/apps/fedextrack/?tracknumbers=%s",
+      "test_numbers": {
+        "valid": [
+          "9611020987654312345672",
+          " 9 6 1 1 0 2 0 9 8 7 6 5 4 3 1 2 3 4 5 6 7 2 "
+        ],
+        "invalid": [
+          "9600000000000000000001"
+        ]
+      }
+    },
+    {
+      "name": "FedEx Ground GSN",
+      "id": "fedex_ground_gsn",
+      "regex": [
+        "\\s*(?<ApplicationIdentifier>9\\s*6\\s*)",
+        "(?<SCNC>([0-9]\\s*){2})",
+        "([0-9]\\s*){5}",
+        "(?<GSN>([0-9]\\s*){10})",
+        "[0-9]\\s*",
+        "(?<SerialNumber>([0-9]\\s*){13})",
+        "(?<CheckDigit>[0-9]\\s*)"
+      ],
+      "validation": {
+        "checksum": {
+          "name": "sum_product_with_weightings_and_modulo",
+          "weightings": [
+            1,
+            7,
+            3,
+            1,
+            7,
+            3,
+            1,
+            7,
+            3,
+            1,
+            7,
+            3,
+            1
+          ],
+          "modulo1": 11,
+          "modulo2": 10
+        }
+      },
+      "tracking_url": "https://www.fedex.com/apps/fedextrack/?tracknumbers=%s",
+      "test_numbers": {
+        "valid": [
+          "9622001900000000000000776632517510",
+          "9622001560000000000000794808390594",
+          "9622001560001234567100794808390594",
+          " 9 6 2 2 0 0 1 5 6 0 0 0 1 2 3 4 5 6 7 1 0 0 7 9 4 8 0 8 3 9 0 5 9 4 ",
+          "9632001560123456789900794808390594"
+        ],
+        "invalid": [
+          "9622001560001234567100794808390595",
+          "9622001560001234567100794808390597"
+        ]
+      }
+    }
+  ]
+}

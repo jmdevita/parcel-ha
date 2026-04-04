@@ -11,6 +11,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv, device_registry as dr
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
+from .carrier_detection import CarrierDetector
 from .const import (
     CARRIER_CODE_ENDPOINT,
     COURIER,
@@ -29,7 +30,7 @@ ADD_PARCEL_SCHEMA = vol.Schema(
         vol.Required("device_id"): cv.string,
         vol.Required(PARCEL_NAME): cv.string,
         vol.Required(TRACKING_NUMBER): cv.string,
-        vol.Required(COURIER): cv.string,
+        vol.Optional(COURIER): cv.string,
         vol.Required("send_push_confirmation", default=False): cv.boolean,
     }
 )
@@ -47,9 +48,15 @@ EDIT_PARCEL_SCHEMA = vol.Schema(
         vol.Required("device_id"): cv.string,
         vol.Required(PARCEL_NAME): cv.string,
         vol.Required(TRACKING_NUMBER): cv.string,
-        vol.Required(COURIER): cv.string,
+        vol.Optional(COURIER): cv.string,
         vol.Required(OLD_NUMBER): cv.string,
         vol.Required(OLD_TYPE): cv.string,
+    }
+)
+
+DETECT_CARRIER_SCHEMA = vol.Schema(
+    {
+        vol.Required(TRACKING_NUMBER): cv.string,
     }
 )
 
@@ -161,10 +168,69 @@ def get_http_error_message(
     )
 
 
+def _resolve_courier(
+    detector: CarrierDetector, tracking_number: str, courier: str | None
+) -> tuple[str, dict | None]:
+    """Resolve the courier code, auto-detecting if not provided.
+
+    Returns (courier_code, detection_info_dict_or_None).
+    Raises HomeAssistantError if auto-detection fails.
+    """
+    if courier:
+        return courier, None
+
+    matches = detector.detect(tracking_number)
+    if not matches:
+        raise HomeAssistantError(
+            f"Could not auto-detect carrier for tracking number '{tracking_number}'. "
+            f"Please provide the 'courier' field manually. "
+            f"See {CARRIER_CODE_ENDPOINT} for supported carrier codes."
+        )
+
+    # Filter to matches that have a Parcel app mapping
+    mapped = [m for m in matches if m.parcel_app_code is not None]
+    if not mapped:
+        names = ", ".join(m.carrier_name for m in matches)
+        raise HomeAssistantError(
+            f"Detected carrier(s) [{names}] but none map to a supported Parcel app code. "
+            f"Please provide the 'courier' field manually."
+        )
+
+    high_confidence = [m for m in mapped if m.confidence >= 0.8]
+
+    if len(high_confidence) == 1:
+        best = high_confidence[0]
+    elif len(high_confidence) > 1:
+        options = ", ".join(
+            f"{m.parcel_app_code} ({m.carrier_name})" for m in high_confidence
+        )
+        raise HomeAssistantError(
+            f"Multiple carriers match tracking number '{tracking_number}': {options}. "
+            f"Please provide the 'courier' field to disambiguate."
+        )
+    else:
+        best = mapped[0]
+        _LOGGER.warning(
+            "Low confidence carrier detection for %s: %s (%.0f%%)",
+            tracking_number,
+            best.parcel_app_code,
+            best.confidence * 100,
+        )
+
+    detection_info = {
+        "carrier_auto_detected": True,
+        "detected_carrier_name": best.carrier_name,
+        "detected_format": best.format_name,
+    }
+    return best.parcel_app_code, detection_info
+
+
 async def async_register_services(hass: HomeAssistant):
     """Register ParcelApp services."""
 
     session = async_get_clientsession(hass)
+    detector = CarrierDetector()
+    detector.load()
 
     async def async_add_parcel(call: ServiceCall):
         """Add a parcel to ParcelApp using the official API."""
@@ -183,7 +249,9 @@ async def async_register_services(hass: HomeAssistant):
 
         parcel_name = call.data[PARCEL_NAME]
         tracking_number = str(call.data[TRACKING_NUMBER])
-        courier = call.data[COURIER]
+        courier, detection_info = _resolve_courier(
+            detector, tracking_number, call.data.get(COURIER)
+        )
         send_push = call.data.get("send_push_confirmation", False)
 
         # Prepare the payload for the official API
@@ -224,12 +292,15 @@ async def async_register_services(hass: HomeAssistant):
                         notification_id=f"parcelapp_add_{tracking_number}",
                     )
 
-                    return {
+                    result = {
                         "success": True,
                         "parcel_name": parcel_name,
                         "tracking_number": tracking_number,
                         "carrier": courier,
                     }
+                    if detection_info:
+                        result.update(detection_info)
+                    return result
                 else:
                     error_msg = result.get("error_message", "Unknown error")
                     _LOGGER.error(
@@ -382,7 +453,9 @@ async def async_register_services(hass: HomeAssistant):
         """Edit a parcel in ParcelApp (BETA)."""
         parcel_name = call.data[PARCEL_NAME]
         tracking_number = str(call.data[TRACKING_NUMBER])
-        courier = call.data[COURIER]
+        courier, detection_info = _resolve_courier(
+            detector, tracking_number, call.data.get(COURIER)
+        )
         old_number = str(call.data[OLD_NUMBER])
         old_type = call.data[OLD_TYPE]
 
@@ -453,7 +526,7 @@ async def async_register_services(hass: HomeAssistant):
                     notification_id=f"parcelapp_edit_{tracking_number}",
                 )
 
-                return {
+                result = {
                     "success": True,
                     "parcel_name": parcel_name,
                     "tracking_number": tracking_number,
@@ -461,6 +534,9 @@ async def async_register_services(hass: HomeAssistant):
                     "old_tracking_number": old_number,
                     "old_carrier": old_type,
                 }
+                if detection_info:
+                    result.update(detection_info)
+                return result
 
         except HomeAssistantError:
             raise
@@ -489,6 +565,25 @@ async def async_register_services(hass: HomeAssistant):
                 tracking_number,
             )
             raise HomeAssistantError(f"Unexpected error: {err}") from err
+
+    async def async_detect_carrier(call: ServiceCall):
+        """Detect carrier from a tracking number."""
+        tracking_number = str(call.data[TRACKING_NUMBER])
+        matches = detector.detect(tracking_number)
+        return {
+            "tracking_number": tracking_number,
+            "matches": [
+                {
+                    "carrier_code": m.parcel_app_code or m.courier_code,
+                    "carrier_name": m.carrier_name,
+                    "format": m.format_name,
+                    "confidence": m.confidence,
+                    "checksum_valid": m.checksum_valid,
+                }
+                for m in matches
+            ],
+            "best_match": matches[0].parcel_app_code if matches else None,
+        }
 
     description_placeholders = {
         "supported_carriers_url": CARRIER_CODE_ENDPOINT,
@@ -519,4 +614,12 @@ async def async_register_services(hass: HomeAssistant):
         schema=EDIT_PARCEL_SCHEMA,
         supports_response=SupportsResponse.OPTIONAL,
         description_placeholders=description_placeholders,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        "detect_carrier",
+        async_detect_carrier,
+        schema=DETECT_CARRIER_SCHEMA,
+        supports_response=SupportsResponse.ONLY,
     )

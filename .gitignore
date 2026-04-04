@@ -174,3 +174,6 @@ cython_debug/
 
 # Built Visual Studio Code Extensions
 *.vsix
+
+# Internal research/analysis docs
+docs/research/

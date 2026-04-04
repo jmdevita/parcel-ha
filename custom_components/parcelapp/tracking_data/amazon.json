@@ -1,0 +1,45 @@
+{
+  "name": "Amazon",
+  "courier_code": "amazon",
+  "tracking_numbers": [
+    {
+      "name": "Amazon Logistics",
+      "id": "amazon_logistics",
+      "regex": [
+        "\\s*T\\s*B\\s*[ACM]\\s*(?<SerialNumber>([0-9]\\s*){12,12})\\s*"
+      ],
+      "validation": {},
+      "test_numbers": {
+        "valid": [
+          "TBA000000000000",
+          "TBA010000000000",
+          "TBC 000000000000",
+          "TBM502887274000"
+        ],
+        "invalid": [
+          "TBA50288727400A",
+          "000000000000000",
+          "000000000000",
+          "TBB000000000000"
+        ]
+      }
+    },
+    {
+      "name": "Amazon International",
+      "id": "amazon_international",
+      "regex": [
+        "\\s*[AFC]\\s*(?<SerialNumber>([0-9]\\s*){10,10})\\s*"
+      ],
+      "validation": {},
+      "test_numbers": {
+        "valid": [
+          "C1004444443",
+          "C1004444444"
+        ],
+        "invalid": [
+          "D1234567890"
+        ]
+      }
+    }
+  ]
+}
