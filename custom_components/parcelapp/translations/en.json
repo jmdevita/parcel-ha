@@ -43,6 +43,10 @@
                 "courier": {
                     "name": "Courier",
                     "description": "The courier service handling the parcel. If omitted, the carrier will be auto-detected from the tracking number. Refer to the list of supported carrier keys at {supported_carriers_url}."
+                },
+                "language": {
+                    "name": "Language",
+                    "description": "Language for delivery information (ISO 639-1 two-letter code, e.g., 'en', 'de', 'fr'). Availability depends on carrier. Defaults to English."
                 }
             }
         },
