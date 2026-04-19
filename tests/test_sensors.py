@@ -2,6 +2,7 @@ import pytest
 import json
 from datetime import datetime, timedelta, date
 from unittest.mock import AsyncMock, Mock
+from dateutil.parser import parse as dateparse
 from pathlib import Path
 from custom_components.parcelapp.sensor import RecentShipment, ActiveShipment, CollectionShipment
 from custom_components.parcelapp.coordinator import ParcelUpdateCoordinator
@@ -113,9 +114,9 @@ async def test_active_shipment_sensor(hass):
         'full_description': 'Wireless Mouse Set',
         'tracking_number': '8217400125612976',
         'date_expected': tomorrow,
-        'date_expected_end': None,
-        'timestamp_expected': None,
-        'timestamp_expected_end': None,
+        'date_expected_end': dateparse(recent_data["deliveries"][0]["date_expected_end"]).date(),
+        'timestamp_expected': datetime.fromtimestamp(recent_data["deliveries"][0]["timestamp_expected"]),
+        'timestamp_expected_end': datetime.fromtimestamp(recent_data["deliveries"][0]["timestamp_expected_end"]),
         'extra_information': 'FedEx SmartPost',
         'days_until_next_delivery': 1,
         'event': 'Departure Scan',
