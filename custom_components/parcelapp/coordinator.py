@@ -123,8 +123,7 @@ class ParcelUpdateCoordinator(DataUpdateCoordinator):
                 }
                 carrier_codes_json["carrier_codes"] = carrier_codes_raw_json
                 self.carrier_codes = carrier_codes_json
-        else:
-            carrier_codes_json = self.carrier_codes
+        carrier_codes_json = self.carrier_codes
         try:
             headers = {"api-key": self.api_key, "Content-Type": "application/json"}
             response = await self.session.get(API_URL, headers=headers)

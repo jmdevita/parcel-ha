@@ -268,6 +268,29 @@ async def test_carrier_codes_persisted_and_restored(hass: HomeAssistant, aioclie
 
 
 @pytest.mark.asyncio
+async def test_429_on_carrier_codes_does_not_crash(hass: HomeAssistant, aioclient_mock):
+    """Test that 429 on carrier codes endpoint doesn't cause UnboundLocalError."""
+    mock_entry = _make_mock_entry()
+
+    api_url = "https://api.parcel.app/external/deliveries/?filter_mode=recent"
+    aioclient_mock.get(api_url, json=_load_fixture("recent.json"), status=200)
+    carrier_url = "https://api.parcel.app/external/supported_carriers.json"
+    # Carrier codes returns 429
+    aioclient_mock.get(carrier_url, status=429)
+
+    coordinator = ParcelUpdateCoordinator(hass, mock_entry)
+    coordinator.session = async_get_clientsession(hass)
+
+    with patch.object(coordinator._store, "async_load", return_value=None):
+        with patch.object(coordinator._store, "async_save"):
+            # This would raise UnboundLocalError before the fix
+            await coordinator.async_config_entry_first_refresh()
+
+    assert coordinator.last_update_success
+    assert coordinator.data["deliveries"] == _load_fixture("recent.json")["deliveries"]
+
+
+@pytest.mark.asyncio
 async def test_other_error_with_cache_returns_cached(hass: HomeAssistant, aioclient_mock):
     """Test that non-429 errors return cached data when available."""
     mock_entry = _make_mock_entry()
