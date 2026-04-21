@@ -42,7 +42,11 @@
                 },
                 "courier": {
                     "name": "Courier",
-                    "description": "The courier service handling the parcel. Refer to the list of supported carrier keys, for example, for ACS Courier the key is 'acs'. The list is available at {supported_carriers_url}."
+                    "description": "The courier service handling the parcel. If omitted, the carrier will be auto-detected from the tracking number. Refer to the list of supported carrier keys at {supported_carriers_url}."
+                },
+                "language": {
+                    "name": "Language",
+                    "description": "Language for delivery information (ISO 639-1 two-letter code, e.g., 'en', 'de', 'fr'). Availability depends on carrier. Defaults to English."
                 }
             }
         },
@@ -74,7 +78,7 @@
                 },
                 "courier": {
                     "name": "Courier",
-                    "description": "The updated courier service handling the parcel. Refer to the list of supported carrier keys, for example, for ACS Courier the key is 'acs'. The list is available at {supported_carriers_url}."
+                    "description": "The updated courier service handling the parcel. If omitted, the carrier will be auto-detected from the tracking number. Refer to the list of supported carrier keys at {supported_carriers_url}."
                 },
                 "old_number": {
                     "name": "Old Tracking Number",
@@ -83,6 +87,16 @@
                 "old_type": {
                     "name": "Old Type",
                     "description": "The original type of the parcel (e.g., package)"
+                }
+            }
+        },
+        "detect_carrier": {
+            "name": "Detect Carrier",
+            "description": "Detect the carrier from a tracking number",
+            "fields": {
+                "tracking_number": {
+                    "name": "Tracking Number",
+                    "description": "The tracking number to identify the carrier for"
                 }
             }
         }

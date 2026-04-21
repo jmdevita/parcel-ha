@@ -23,9 +23,17 @@ add_parcel:
         text:
     courier:
       name: "Courier"
-      description: "Courier/carrier code (e.g., ups, fedex, usps)"
+      description: "Courier/carrier code (e.g., ups, fedex, usps). If omitted, the carrier will be auto-detected from the tracking number."
       example: "ups"
-      required: true
+      required: false
+      selector:
+        text:
+    language:
+      name: "Language"
+      description: "Language for delivery information (ISO 639-1 two-letter code). Availability depends on carrier."
+      example: "en"
+      required: false
+      default: "en"
       selector:
         text:
     send_push_confirmation:
@@ -81,9 +89,9 @@ edit_parcel:
         text:
     courier:
       name: "Courier"
-      description: "New courier/carrier code"
+      description: "New courier/carrier code. If omitted, the carrier will be auto-detected from the tracking number."
       example: "fedex"
-      required: true
+      required: false
       selector:
         text:
     oldNumber:
@@ -97,6 +105,16 @@ edit_parcel:
       name: "Old Courier"
       description: "Current courier/carrier code of the parcel to edit"
       example: "fedex"
+      required: true
+      selector:
+        text:
+
+detect_carrier:
+  fields:
+    tracking_number:
+      name: "Tracking Number"
+      description: "The tracking number to identify the carrier for"
+      example: "1Z5R89390357567127"
       required: true
       selector:
         text:

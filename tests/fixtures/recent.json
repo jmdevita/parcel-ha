@@ -8,6 +8,9 @@
         "tracking_number": "8217400125612976",
         "extra_information": "FedEx SmartPost",
         "date_expected": "2023-03-05T00:00:00Z",
+        "date_expected_end": "2023-03-05T17:00:00Z",
+        "timestamp_expected": 1677974400,
+        "timestamp_expected_end": 1678035600,
         "events": [
           {
             "event": "Departure Scan",

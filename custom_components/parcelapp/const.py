@@ -72,6 +72,9 @@ EMPTY_ATTRIBUTES = {
     "tracking_number": "None",
     "extra_information": None,
     "date_expected": "None",
+    "date_expected_end": None,
+    "timestamp_expected": None,
+    "timestamp_expected_end": None,
     "days_until_next_delivery": "No active parcels.",
     "event": "None",
     "event_date": "None",
@@ -85,3 +88,5 @@ COURIER = "courier"
 TYPE = "type"
 OLD_NUMBER = "oldNumber"
 OLD_TYPE = "oldType"
+LANGUAGE = "language"
+DEFAULT_LANGUAGE = "en"

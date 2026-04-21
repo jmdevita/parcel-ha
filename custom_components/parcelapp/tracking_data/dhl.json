@@ -1,0 +1,168 @@
+{
+  "name": "DHL",
+  "courier_code": "dhl",
+  "tracking_numbers": [
+    {
+      "name": "DHL Express",
+      "id": "dhl_express",
+      "regex": "\\s*(?<SerialNumber>([0-9]\\s*){9,10})(?<CheckDigit>([0-9]\\s*))",
+      "validation": {
+        "checksum": {
+          "name": "mod7"
+        }
+      },
+      "tracking_url": "http://www.dhl.com/en/express/tracking.html?brand=DHL&AWB=%s",
+      "test_numbers": {
+        "valid": [
+          "3318810025",
+          "73891051146",
+          "8487135506",
+          "1099255990",
+          "3821724944",
+          "3318810036",
+          "3318810014"
+        ],
+        "invalid": [
+          "3318810010",
+          "3318810034",
+          "3318810011"
+        ]
+      }
+    },
+    {
+      "name": "DHL Express (Piece ID)",
+      "id": "dhl_express_piece_id",
+      "regex": "\\s*(J[A-Z]{2,3})(?<SerialNumber>([0-9]\\s*){9,10})",
+      "validation": {},
+      "tracking_url": "http://www.dhl.com/en/express/tracking.html?brand=DHL&AWB=%s",
+      "test_numbers": {
+        "valid": [
+          "JJD0099999999",
+          "JVGL0999999990"
+        ],
+        "invalid": [
+          "XJD0099999998"
+        ]
+      }
+    },
+    {
+      "name": "DHL E-Commerce",
+      "id": "dhl_ecommerce",
+      "regex": "(?:GM|LX|RX|UV|CN|SG|TH|IN|HK|MY)\\s*(?<SerialNumber>(?=[0-9A-Z\\s]{10,39}\\b)(?=[^0-9A-Z]*[0-9])[0-9A-Z\\s]{10,39})",
+      "validation": {},
+      "tracking_url": "http://www.dhl.com/en/express/tracking.html?brand=DHL&AWB=%s",
+      "test_numbers": {
+        "valid": [
+          "GM2951173225174494",
+          "GM 2 9 5 117 32 25 1 7 44 9 4",
+          "GM295117494011169042",
+          "GM9E44608A27984866BA2D"
+        ],
+        "invalid": [
+          "GS295117494011169041",
+          "GR295117494011169045",
+          "AAAAAAAAAAAAAAAAAA",
+          "ABCDEFGHILJKLMNOPQ",
+          "ABCDEFGHILJKLMNOPQRSTU1234567890"
+        ]
+      }
+    },
+    {
+      "name": "DHL E-Commerce (14)",
+      "id": "dhl_ecommerce_14",
+      "regex": "\\s*\\b(?<SerialNumber>(?:[0-9]\\s*){14})\\b",
+      "validation": {},
+      "tracking_url": "http://www.dhl.com/en/express/tracking.html?brand=DHL&AWB=%s",
+      "test_numbers": {
+        "valid": [
+          "60120172242323",
+          "5108 7693037816",
+          "60120174971147"
+        ],
+        "invalid": [
+          "A60120172242323",
+          "60120172242323B",
+          "160120172242323",
+          "6012017224232301",
+          "601201722X2323",
+          "GS295117494011169041",
+          "GR295117494011169045"
+        ]
+      }
+    },
+    {
+      "name": "DHL E-Commerce (30)",
+      "id": "dhl_ecommerce_30",
+      "regex": [
+        "\\s*(?<RoutingApplicationId>4\\s*2\\s*0\\s*)(?<DestinationZip>([0-9]\\s*){5})",
+        "(?!\\s*9\\s*[1-5]\\b)",
+        "(?<SerialNumber>",
+        "(?<ServiceType>(9[2-5]\\s*))",
+        "(?<ShipperId>([0-9]\\s*){9})",
+        "(?<PackageId>([0-9]\\s*){10})",
+        ")",
+        "(?<CheckDigit>[0-9]\\s*)"
+      ],
+      "validation": {
+        "checksum": {
+          "name": "mod10",
+          "evens_multiplier": 3,
+          "odds_multiplier": 1,
+          "reverse": true
+        }
+      },
+      "tracking_url": "https://ecommerceportal.dhl.com/track?trackingnumber=%s",
+      "partners": [{
+        "description": "DHL eCommerce hands off to USPS for the last mile",
+        "partner_type": "carrier",
+        "partner_id": "usps_22",
+        "validation": {
+          "matches_all": [
+            { "regex_group_name": "RoutingApplicationId", "matches": "420" },
+            { "regex_group_name": "ServiceType", "matches_regex": "9[2345]" }
+          ]
+        }
+      },
+      {
+        "description": "DHL eCommerce hands off to USPS for the last mile",
+        "partner_type": "carrier",
+        "partner_id": "usps_91",
+        "validation": {
+          "matches_all": [
+            { "regex_group_name": "RoutingApplicationId", "matches": "420" },
+            { "regex_group_name": "ServiceType", "matches_regex": "9[2345]" }
+          ]
+        }
+      }],
+      "additional": [
+        {
+          "name": "Service Type",
+          "regex_group_name": "ServiceType",
+          "lookup": [
+            { "matches": "92", "name": "USPS Tracking (Commercial)" },
+            { "matches": "93", "name": "Collect on Delivery (COD)" },
+            { "matches": "94", "name": "USPS Tracking" },
+            { "matches": "95", "name": "Certified Mail" }
+          ]
+        }
+      ],
+      "test_numbers": {
+        "valid": [
+          "420902459261290336128704042634",
+          "420941179261290336128704062441",
+          "420926029261290336128704067248",
+          "420902729261290336128704124163",
+          "420950549261290336128704133837",
+          "420193809261290336128704280838",
+          "420900469261290336128704216936"
+        ],
+        "invalid": [
+          "420941179261290336128704062442",
+          "420941179261290336128704062400",
+          "420941179261290336128704062422"
+        ]
+      }
+    }
+
+  ]
+}
