@@ -16,6 +16,9 @@ from .const import (
     UPDATE_INTERVAL_SECONDS,
     MIN_UPDATE_INTERVAL_SECONDS,
     MAX_UPDATE_INTERVAL_SECONDS,
+    DEFAULT_FILTER_MODE,
+    FILTER_MODE_RECENT,
+    FILTER_MODE_ACTIVE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -114,6 +117,7 @@ class ParcelOptionsFlow(config_entries.OptionsFlow):
             new_account_token = user_input.get("account_token")
             new_update_interval_minutes = user_input.get("update_interval_minutes", UPDATE_INTERVAL_SECONDS // 60)
             new_update_interval = new_update_interval_minutes * 60
+            new_filter_mode = user_input.get("filter_mode", DEFAULT_FILTER_MODE)
 
             # Check if the API key or account token has changed
             if new_api_key != self.config_entry.data.get(
@@ -154,6 +158,7 @@ class ParcelOptionsFlow(config_entries.OptionsFlow):
                     "api_key": new_api_key,
                     "account_token": new_account_token,
                     "update_interval": new_update_interval,
+                    "filter_mode": new_filter_mode,
                 }
             )
 
@@ -165,6 +170,9 @@ class ParcelOptionsFlow(config_entries.OptionsFlow):
             "update_interval", UPDATE_INTERVAL_SECONDS
         )
         current_interval_minutes = current_interval_seconds // 60
+        current_filter_mode = self.config_entry.options.get(
+            "filter_mode", DEFAULT_FILTER_MODE
+        )
 
         return vol.Schema(
             {
@@ -186,6 +194,18 @@ class ParcelOptionsFlow(config_entries.OptionsFlow):
                         step=5,
                         mode=selector.NumberSelectorMode.SLIDER,
                         unit_of_measurement="minutes",
+                    )
+                ),
+                vol.Optional(
+                    "filter_mode",
+                    default=current_filter_mode,
+                ): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=[
+                            selector.SelectOptionDict(value=FILTER_MODE_RECENT, label="Recent (includes completed)"),
+                            selector.SelectOptionDict(value=FILTER_MODE_ACTIVE, label="Active (excludes completed)"),
+                        ],
+                        mode=selector.SelectSelectorMode.DROPDOWN,
                     )
                 ),
             }
