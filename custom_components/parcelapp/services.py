@@ -243,7 +243,7 @@ async def async_register_services(hass: HomeAssistant):
 
     session = async_get_clientsession(hass)
     detector = CarrierDetector()
-    detector.load()
+    await hass.async_add_executor_job(detector.load)
 
     async def async_add_parcel(call: ServiceCall):
         """Add a parcel to ParcelApp using the official API."""
