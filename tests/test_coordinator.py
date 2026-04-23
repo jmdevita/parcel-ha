@@ -44,6 +44,7 @@ async def test_parcel_update_coordinator(hass, aioclient_mock):
     mock_entry = AsyncMock()
     mock_entry.data = {"api_key": "test_api_key"}
     mock_entry.options = {}
+    mock_entry.entry_id = "test_entry_coord"
     mock_entry.async_on_unload = Mock()
 
     # Initialize the coordinator

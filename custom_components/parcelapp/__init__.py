@@ -34,6 +34,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ParcelConfigEntry) -> bo
     coordinator = ParcelUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
 
+    entry.runtime_data = coordinator
+
     # Store the coordinator in hass.data
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {"coordinator": coordinator}
 
@@ -41,8 +43,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ParcelConfigEntry) -> bo
     if "platforms" not in hass.data[DOMAIN][entry.entry_id]:
         await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
         hass.data[DOMAIN][entry.entry_id]["platforms"] = PLATFORMS
-
-    entry.runtime_data = coordinator
     entry.async_on_unload(entry.add_update_listener(async_update_entry))
     if not hass.data[DOMAIN].get("processed_cleanup"):
         await cleanup_old_device(hass)

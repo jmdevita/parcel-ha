@@ -9,6 +9,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
@@ -33,7 +34,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Parcel sensor platform from a config entry."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+    coordinator = entry.runtime_data
     async_add_entities(
         [
             RecentShipment(coordinator),
@@ -45,7 +46,7 @@ async def async_setup_entry(
     )
 
 
-class RecentShipment(CoordinatorEntity, SensorEntity):
+class RecentShipment(CoordinatorEntity, RestoreEntity, SensorEntity):
     """Representation of a sensor that fetches the top value from an API."""
 
     def __init__(self, coordinator: ParcelUpdateCoordinator) -> None:
@@ -57,6 +58,14 @@ class RecentShipment(CoordinatorEntity, SensorEntity):
         self._globalid = "Parcel_Recent_Shipment"
         self._attr_icon = "mdi:package"
         self._attr_state = None
+
+    async def async_added_to_hass(self) -> None:
+        """Restore last known state when added to hass."""
+        await super().async_added_to_hass()
+        if (last_state := await self.async_get_last_state()) is not None:
+            self._attr_state = last_state.state
+            if last_state.attributes:
+                self._hass_custom_attributes = dict(last_state.attributes)
 
     @property
     def device_info(self):
@@ -159,7 +168,7 @@ class RecentShipment(CoordinatorEntity, SensorEntity):
         self.async_write_ha_state()
 
 
-class ActiveShipment(CoordinatorEntity, SensorEntity):
+class ActiveShipment(CoordinatorEntity, RestoreEntity, SensorEntity):
     """Representation of a sensor that manipulates the data from the API, presents the next parcel due, and presents multiple attributes."""
 
     _attr_state_class = SensorStateClass.MEASUREMENT
@@ -174,6 +183,17 @@ class ActiveShipment(CoordinatorEntity, SensorEntity):
         self._globalid = "Parcel_Active_Shipment"
         self._attr_icon = "mdi:package"
         self._attr_state = None
+
+    async def async_added_to_hass(self) -> None:
+        """Restore last known state when added to hass."""
+        await super().async_added_to_hass()
+        if (last_state := await self.async_get_last_state()) is not None:
+            try:
+                self._attr_state = int(last_state.state)
+            except (ValueError, TypeError):
+                self._attr_state = last_state.state
+            if last_state.attributes:
+                self._hass_custom_attributes = dict(last_state.attributes)
 
     @property
     def device_info(self):
@@ -431,7 +451,7 @@ class ActiveShipment(CoordinatorEntity, SensorEntity):
         self.async_write_ha_state()
 
 
-class CollectionShipment(CoordinatorEntity, SensorEntity):
+class CollectionShipment(CoordinatorEntity, RestoreEntity, SensorEntity):
     """Representation of a sensor that reports any parcels currently ready for collection."""
 
     # Disabled by default
@@ -448,6 +468,17 @@ class CollectionShipment(CoordinatorEntity, SensorEntity):
         self._globalid = "Parcel_Collection_Shipment"
         self._attr_icon = "mdi:package-up"
         self._attr_state = None
+
+    async def async_added_to_hass(self) -> None:
+        """Restore last known state when added to hass."""
+        await super().async_added_to_hass()
+        if (last_state := await self.async_get_last_state()) is not None:
+            try:
+                self._attr_state = int(last_state.state)
+            except (ValueError, TypeError):
+                self._attr_state = last_state.state
+            if last_state.attributes:
+                self._hass_custom_attributes = dict(last_state.attributes)
 
     @property
     def device_info(self):
@@ -527,7 +558,7 @@ class CollectionShipment(CoordinatorEntity, SensorEntity):
         self.async_write_ha_state()
 
 
-class RawShipmentData(CoordinatorEntity, SensorEntity):
+class RawShipmentData(CoordinatorEntity, RestoreEntity, SensorEntity):
     """Representation of a sensor that fetches the raw data from the API."""
 
     # Disabled by default
@@ -542,6 +573,14 @@ class RawShipmentData(CoordinatorEntity, SensorEntity):
         self._globalid = "Parcel_Raw_Shipment_Data"
         self._attr_icon = "mdi:package-down"
         self._attr_state = None
+
+    async def async_added_to_hass(self) -> None:
+        """Restore last known state when added to hass."""
+        await super().async_added_to_hass()
+        if (last_state := await self.async_get_last_state()) is not None:
+            self._attr_state = last_state.state
+            if last_state.attributes:
+                self._hass_custom_attributes = dict(last_state.attributes)
 
     @property
     def device_info(self):
