@@ -342,9 +342,6 @@ class CarrierDetector:
 
         Returns matches sorted by confidence (highest first).
         """
-        if not self._loaded:
-            self.load()
-
         results: list[CarrierMatch] = []
 
         for pattern in self._patterns:

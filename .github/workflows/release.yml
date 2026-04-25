@@ -15,6 +15,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set manifest version from tag
+        run: |
+          VERSION="${{ github.event.release.tag_name }}"
+          VERSION="${VERSION#v}"
+          sed -i "s/\"version\": \".*\"/\"version\": \"${VERSION}\"/" custom_components/parcelapp/manifest.json
+          cat custom_components/parcelapp/manifest.json
+
       - name: Create ZIP file
         run: |
           cd custom_components/parcelapp
