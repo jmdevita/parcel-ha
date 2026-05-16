@@ -21,6 +21,7 @@ from .const import (
     STORAGE_KEY,
     STORAGE_VERSION,
     DEFAULT_RETRY_AFTER_SECONDS,
+    MAX_BACKOFF_SECONDS,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -42,6 +43,7 @@ class ParcelUpdateCoordinator(DataUpdateCoordinator):
         self._store = Store(hass, STORAGE_VERSION, f"{STORAGE_KEY}_{entry.entry_id}")
         self._cached_data: dict[str, Any] | None = None
         self._skip_next_update = False
+        self._consecutive_429s = 0
 
         super().__init__(
             hass,
@@ -136,16 +138,23 @@ class ParcelUpdateCoordinator(DataUpdateCoordinator):
                         retry_after = int(retry_header)
                     except ValueError:
                         pass
+                self._consecutive_429s += 1
+                backoff = retry_after * (2 ** (self._consecutive_429s - 1))
+                backoff = min(backoff, MAX_BACKOFF_SECONDS)
+                backoff = max(backoff, self._configured_interval_seconds)
                 _LOGGER.warning(
-                    "Parcel API rate limit hit (429). Backing off for %d seconds",
-                    retry_after,
+                    "Parcel API rate limit hit (429), attempt %d. Backing off for %d seconds",
+                    self._consecutive_429s,
+                    backoff,
                 )
                 if self._cached_data is not None:
-                    self.update_interval = timedelta(seconds=retry_after)
+                    self.update_interval = timedelta(seconds=backoff)
                     return self._cached_data
                 raise UpdateFailed(
                     "Rate limited by Parcel API (429) and no cached data available."
                 )
+
+            self._consecutive_429s = 0
 
             response.raise_for_status()
             payload = await response.text()

@@ -9,6 +9,7 @@ CARRIER_CODE_ENDPOINT = "https://api.parcel.app/external/supported_carriers.json
 STORAGE_KEY = f"{DOMAIN}_cache"
 STORAGE_VERSION = 1
 DEFAULT_RETRY_AFTER_SECONDS = 300
+MAX_BACKOFF_SECONDS = 3600
 DELIVERY_STATUS_CODES = {
     -1: "None",
     0: "Completed delivery.",
