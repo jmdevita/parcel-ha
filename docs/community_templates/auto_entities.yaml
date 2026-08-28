@@ -8,7 +8,7 @@ card:
 filter:
   template: >
     {# Fetch parcel data from sensor #}
-    {% set parcels = state_attr('sensor.parcel_raw_shipment_data', 'deliveries') or [] %}
+    {% set parcels = state_attr('sensor.parcel_app_parcel_raw_shipment_data', 'deliveries') or [] %}
     {% set enroute = namespace(list=[]) %}
     {% set delivered = namespace(list=[]) %}
 
@@ -31,7 +31,7 @@ filter:
       {% if statuscode in [2, 3, 4] %}
         {% set row = {
           'type': 'custom:template-entity-row',
-          'entity': 'sensor.parcel_raw_shipment_data',
+          'entity': 'sensor.parcel_app_parcel_raw_shipment_data',
           'name': '[' ~ carrier ~ '] ' ~ name ~ ' - ' ~ barcode,
           'state': 'En route',
           'secondary': 'Expected: ' ~ time,
@@ -41,7 +41,7 @@ filter:
       {% elif statuscode == 0 %}
         {% set row = {
           'type': 'custom:template-entity-row',
-          'entity': 'sensor.parcel_raw_shipment_data',
+          'entity': 'sensor.parcel_app_parcel_raw_shipment_data',
           'name': '[' ~ carrier ~ '] ' ~ name ~ ' - ' ~ barcode,
           'state': 'Delivered',
           'secondary': 'Delivered: ' ~ time,

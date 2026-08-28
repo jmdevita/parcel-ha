@@ -78,7 +78,7 @@ This integration includes beta features for adding, editing, and deleting parcel
 -   `next_delivery_carrier`: The converted (from carrier code) carrier name of the next shipment arriving.
 
 ### Raw Data Sensor
-From v1.2.0 another sensor entity is added, called `sensor.parcel_raw_shipment_data`. It contains raw json data from the API pull for debugging or custom templating. It has the following attributes:
+From v1.2.0 another sensor entity is added, called `sensor.parcel_app_parcel_raw_shipment_data`. It contains raw json data from the API pull for debugging or custom templating. It has the following attributes:
 
 #### Raw Data Sensor Attributes
 As per the [Parcel App API documentation](https://parcelapp.net/help/api.html)
