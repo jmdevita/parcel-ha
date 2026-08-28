@@ -3,7 +3,7 @@
 
 type: markdown
 content: >-
-  {% set raw = state_attr('sensor.parcel_raw_shipment_data', 'deliveries') %}
+  {% set raw = state_attr('sensor.parcel_app_parcel_raw_shipment_data', 'deliveries') %}
   {% set ns = namespace(deliveries = []) %}
   {% for order in raw | selectattr('status_code','>',0) %}
     {% if order.date_expected is defined %}
