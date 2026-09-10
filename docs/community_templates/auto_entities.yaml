@@ -8,7 +8,9 @@ card:
 filter:
   template: >
     {# Fetch parcel data from sensor #}
-    {% set parcels = state_attr('sensor.parcel_app_parcel_raw_shipment_data', 'deliveries') or [] %}
+    {# Entity ID depends on the HA core version the integration was first set up on (naming migration ~HA 2026.4) #}
+    {% set raw_entity = 'sensor.parcel_app_parcel_raw_shipment_data' if states.sensor.parcel_app_parcel_raw_shipment_data is not none else 'sensor.parcel_raw_shipment_data' %}
+    {% set parcels = state_attr(raw_entity, 'deliveries') or [] %}
     {% set enroute = namespace(list=[]) %}
     {% set delivered = namespace(list=[]) %}
 
@@ -31,7 +33,7 @@ filter:
       {% if statuscode in [2, 3, 4] %}
         {% set row = {
           'type': 'custom:template-entity-row',
-          'entity': 'sensor.parcel_app_parcel_raw_shipment_data',
+          'entity': raw_entity,
           'name': '[' ~ carrier ~ '] ' ~ name ~ ' - ' ~ barcode,
           'state': 'En route',
           'secondary': 'Expected: ' ~ time,
@@ -41,7 +43,7 @@ filter:
       {% elif statuscode == 0 %}
         {% set row = {
           'type': 'custom:template-entity-row',
-          'entity': 'sensor.parcel_app_parcel_raw_shipment_data',
+          'entity': raw_entity,
           'name': '[' ~ carrier ~ '] ' ~ name ~ ' - ' ~ barcode,
           'state': 'Delivered',
           'secondary': 'Delivered: ' ~ time,
