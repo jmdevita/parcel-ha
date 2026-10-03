@@ -3,12 +3,14 @@
 import logging
 from typing import Any
 
-import requests
+import aiohttp
 import voluptuous as vol
 
 from homeassistant import config_entries
+from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import selector
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
     DOMAIN,
@@ -19,6 +21,17 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+VALIDATION_TIMEOUT = aiohttp.ClientTimeout(total=10)
+
+
+async def _async_validate_api_key(hass: HomeAssistant, api_key: str) -> int:
+    """Validate the API key with the API and return the HTTP status code."""
+    session = async_get_clientsession(hass)
+    async with session.get(
+        PARCEL_URL, headers={"api-key": api_key}, timeout=VALIDATION_TIMEOUT
+    ) as response:
+        return response.status
 
 
 class ParcelConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -43,12 +56,9 @@ class ParcelConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             # Validate the API key by making a request to the API
             try:
-                headers = {"api-key": api_key}
-                response = await self.hass.async_add_executor_job(
-                    self._validate_api_key, headers
-                )
+                status = await _async_validate_api_key(self.hass, api_key)
 
-                if response.status_code == 200:
+                if status == 200:
                     # API key is valid, proceed to store the configuration
                     return self.async_create_entry(
                         title="Parcel",
@@ -60,7 +70,7 @@ class ParcelConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     data_schema=self._create_schema(),
                     errors={"base": self._error},
                 )
-            except requests.exceptions.RequestException:
+            except (aiohttp.ClientError, TimeoutError):
                 self._error = "Could not connect to the API"
                 return self.async_show_form(
                     step_id="user",
@@ -83,10 +93,6 @@ class ParcelConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Optional("account_token", default=""): str,
             }
         )
-
-    def _validate_api_key(self, headers: dict[str, str]) -> requests.Response:
-        """Validate the API key with the API."""
-        return requests.get(PARCEL_URL, headers=headers, timeout=10)
 
     @staticmethod
     def async_get_options_flow(
@@ -122,11 +128,10 @@ class ParcelOptionsFlow(config_entries.OptionsFlow):
                 try:
                     # Validate the API key if it has changed
                     if new_api_key != self.config_entry.data.get("api_key"):
-                        headers = {"api-key": new_api_key}
-                        response = await self.hass.async_add_executor_job(
-                            self._validate_api_key, headers
+                        status = await _async_validate_api_key(
+                            self.hass, new_api_key
                         )
-                        if response.status_code != 200:
+                        if status != 200:
                             return self.async_show_form(
                                 step_id="init",
                                 data_schema=self._create_schema(),
@@ -142,7 +147,7 @@ class ParcelOptionsFlow(config_entries.OptionsFlow):
                         },
                     )
 
-                except requests.exceptions.RequestException:
+                except (aiohttp.ClientError, TimeoutError):
                     return self.async_show_form(
                         step_id="init",
                         data_schema=self._create_schema(),
@@ -190,7 +195,3 @@ class ParcelOptionsFlow(config_entries.OptionsFlow):
                 ),
             }
         )
-
-    def _validate_api_key(self, headers: dict[str, str]) -> requests.Response:
-        """Validate the API key with the API."""
-        return requests.get(PARCEL_URL, headers=headers, timeout=10)
