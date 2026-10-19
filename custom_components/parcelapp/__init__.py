@@ -77,23 +77,15 @@ async def async_update_entry(hass: HomeAssistant, config_entry: ParcelConfigEntr
 
 
 async def cleanup_old_device(hass: HomeAssistant) -> None:
-    """Cleanup device without proper device identifier.
-
-    Older versions of this integration registered a device using a malformed
-    identifier -- a bare ``(DOMAIN,)`` tuple instead of the expected
-    ``(DOMAIN, <unique_id>)``. ``device_registry.async_get_device`` is
-    deprecated (scheduled for removal in HA Core 2027.8.0) because device
-    identifiers are no longer guaranteed unique across config entries, and it
-    cannot be used to look up the malformed single-element identifier anyway.
-
-    Iterate the device registry and remove any device that still carries the
-    improper identifier.
-    """
+    """Remove devices left with the malformed ``(DOMAIN,)`` identifier by older versions."""
     device_reg = dr.async_get(hass)
-    for device in list(device_reg.devices.values()):
-        if any(
-            len(identifier) == 1 and identifier[0] == DOMAIN
-            for identifier in device.identifiers
+    for config_entry in hass.config_entries.async_entries(DOMAIN):
+        for device in dr.async_entries_for_config_entry(
+            device_reg, config_entry.entry_id
         ):
-            _LOGGER.debug("Removing improper device %s", device.name)
-            device_reg.async_remove_device(device.id)
+            if any(
+                len(identifier) == 1 and identifier[0] == DOMAIN
+                for identifier in device.identifiers
+            ):
+                _LOGGER.debug("Removing improper device %s", device.name)
+                device_reg.async_remove_device(device.id)
