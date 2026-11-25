@@ -42,7 +42,6 @@ async def async_setup_entry(
             CollectionShipment(coordinator),
             RawShipmentData(coordinator),
         ],
-        update_before_add=True,
     )
 
 
@@ -66,6 +65,10 @@ class RecentShipment(CoordinatorEntity, RestoreEntity, SensorEntity):
             self._attr_state = last_state.state
             if last_state.attributes:
                 self._hass_custom_attributes = dict(last_state.attributes)
+        # Setup has already fetched (or loaded cached) data, so apply it now
+        # rather than requesting another refresh, which would use an API call.
+        if self.coordinator.data:
+            self._handle_coordinator_update()
 
     @property
     def device_info(self):
@@ -194,6 +197,10 @@ class ActiveShipment(CoordinatorEntity, RestoreEntity, SensorEntity):
                 self._attr_state = last_state.state
             if last_state.attributes:
                 self._hass_custom_attributes = dict(last_state.attributes)
+        # Setup has already fetched (or loaded cached) data, so apply it now
+        # rather than requesting another refresh, which would use an API call.
+        if self.coordinator.data:
+            self._handle_coordinator_update()
 
     @property
     def device_info(self):
@@ -479,6 +486,10 @@ class CollectionShipment(CoordinatorEntity, RestoreEntity, SensorEntity):
                 self._attr_state = last_state.state
             if last_state.attributes:
                 self._hass_custom_attributes = dict(last_state.attributes)
+        # Setup has already fetched (or loaded cached) data, so apply it now
+        # rather than requesting another refresh, which would use an API call.
+        if self.coordinator.data:
+            self._handle_coordinator_update()
 
     @property
     def device_info(self):
@@ -581,6 +592,10 @@ class RawShipmentData(CoordinatorEntity, RestoreEntity, SensorEntity):
             self._attr_state = last_state.state
             if last_state.attributes:
                 self._hass_custom_attributes = dict(last_state.attributes)
+        # Setup has already fetched (or loaded cached) data, so apply it now
+        # rather than requesting another refresh, which would use an API call.
+        if self.coordinator.data:
+            self._handle_coordinator_update()
 
     @property
     def device_info(self):
