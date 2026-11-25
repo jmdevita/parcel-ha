@@ -25,14 +25,14 @@ def dateparse(input_date_raw):
                 # If it's not in ISO format, try to parse it with dateutil and try for the day being first
                     date_expected_dayfirst = parse(input_date_raw,dayfirst=True,fuzzy=True)
                     date_expected_dayfirst = date_expected_dayfirst.date()
-            except (ValueError, TypeError, AttributeError):
+            except (ValueError, TypeError, AttributeError, OverflowError):
                 # If this fails, set this attempt to a static value
                 date_expected_dayfirst = date(1970,1,1)
             try:
                 # Now try again with month first
-                date_expected_monthfirst = parse(input_date_raw,monthfirst=True,fuzzy=True)
+                date_expected_monthfirst = parse(input_date_raw,dayfirst=False,fuzzy=True)
                 date_expected_monthfirst = date_expected_monthfirst.date()
-            except (ValueError, TypeError, AttributeError):
+            except (ValueError, TypeError, AttributeError, OverflowError):
                 # Again, if this fails, set to a static value
                 date_expected_monthfirst = date(1970,1,1)
             # Next, if either of the attempts are TODAY, assume the parcel has been delivered today. Delivered parcels aren't included for long
