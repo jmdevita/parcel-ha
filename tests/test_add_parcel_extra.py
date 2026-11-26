@@ -10,10 +10,11 @@ from custom_components.parcelapp.services import async_register_services
 ADD_URL = "https://api.parcel.app/external/add-delivery/"
 
 
-async def _call_add(hass, aioclient_mock, **extra):
+async def _call_add(hass, aioclient_mock, options=None, **extra):
     aioclient_mock.post(ADD_URL, json={"success": True}, status=200)
     entry = Mock()
     entry.data = {"api_key": "test_api_key"}
+    entry.options = options or {}
     with patch(
         "custom_components.parcelapp.services.async_get_config_entry_from_device_id",
         AsyncMock(return_value=entry),
@@ -57,3 +58,24 @@ async def test_add_parcel_without_extra_fields(hass, aioclient_mock):
     payload = await _call_add(hass, aioclient_mock)
     assert "postcode" not in payload
     assert "email" not in payload
+
+
+@pytest.mark.asyncio
+async def test_add_parcel_uses_default_postcode_from_options(hass, aioclient_mock):
+    """Without a postcode in the call, the one from the options is sent."""
+    payload = await _call_add(
+        hass, aioclient_mock, options={"default_postcode": " 10115 "}
+    )
+    assert payload["postcode"] == "10115"
+
+
+@pytest.mark.asyncio
+async def test_add_parcel_postcode_in_call_wins_over_default(hass, aioclient_mock):
+    """A postcode in the call overrides the default from the options."""
+    payload = await _call_add(
+        hass,
+        aioclient_mock,
+        options={"default_postcode": "10115"},
+        postcode="50667",
+    )
+    assert payload["postcode"] == "50667"

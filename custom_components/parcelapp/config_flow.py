@@ -13,6 +13,7 @@ from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
+    DEFAULT_POSTCODE,
     DOMAIN,
     PARCEL_URL,
     UPDATE_INTERVAL_SECONDS,
@@ -120,6 +121,7 @@ class ParcelOptionsFlow(config_entries.OptionsFlow):
             new_account_token = user_input.get("account_token")
             new_update_interval_minutes = user_input.get("update_interval_minutes", UPDATE_INTERVAL_SECONDS // 60)
             new_update_interval = new_update_interval_minutes * 60
+            new_default_postcode = str(user_input.get(DEFAULT_POSTCODE) or "").strip()
 
             # Check if the API key or account token has changed
             if new_api_key != self.config_entry.data.get(
@@ -159,6 +161,7 @@ class ParcelOptionsFlow(config_entries.OptionsFlow):
                     "api_key": new_api_key,
                     "account_token": new_account_token,
                     "update_interval": new_update_interval,
+                    DEFAULT_POSTCODE: new_default_postcode,
                 }
             )
 
@@ -193,5 +196,13 @@ class ParcelOptionsFlow(config_entries.OptionsFlow):
                         unit_of_measurement="minutes",
                     )
                 ),
+                vol.Optional(
+                    DEFAULT_POSTCODE,
+                    description={
+                        "suggested_value": self.config_entry.options.get(
+                            DEFAULT_POSTCODE, ""
+                        )
+                    },
+                ): str,
             }
         )

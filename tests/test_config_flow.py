@@ -61,3 +61,29 @@ async def test_connection_error_shows_error(hass: HomeAssistant, aioclient_mock)
 
     assert result["type"] is FlowResultType.FORM
     assert result["errors"] == {"base": "Could not connect to the API"}
+
+
+@pytest.mark.asyncio
+async def test_options_store_default_postcode(hass: HomeAssistant) -> None:
+    """The options flow saves a trimmed default postcode."""
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    entry = MockConfigEntry(
+        domain=DOMAIN, data={"api_key": "test_api_key", "account_token": ""}
+    )
+    entry.add_to_hass(hass)
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert result["type"] is FlowResultType.FORM
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            "api_key": "test_api_key",
+            "account_token": "",
+            "update_interval_minutes": 30,
+            "default_postcode": " 10115 ",
+        },
+    )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert entry.options["default_postcode"] == "10115"

@@ -17,6 +17,7 @@ from .const import (
     CARRIER_CODE_ENDPOINT,
     COURIER,
     DEFAULT_LANGUAGE,
+    DEFAULT_POSTCODE,
     DOMAIN,
     EMAIL,
     LANGUAGE,
@@ -285,6 +286,14 @@ async def async_register_services(hass: HomeAssistant):
         for key in (POSTCODE, EMAIL):
             if call.data.get(key):
                 payload[key] = str(call.data[key]).strip()
+        # Without a postcode in the call, use the one set in the integration's
+        # options. The API records it only for carriers that need it.
+        if POSTCODE not in payload:
+            default_postcode = str(
+                config_entry.options.get(DEFAULT_POSTCODE) or ""
+            ).strip()
+            if default_postcode:
+                payload[POSTCODE] = default_postcode
         headers = {
             "api-key": api_key,
             "Content-Type": "application/json",
