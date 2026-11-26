@@ -18,10 +18,12 @@ from .const import (
     COURIER,
     DEFAULT_LANGUAGE,
     DOMAIN,
+    EMAIL,
     LANGUAGE,
     OLD_NUMBER,
     OLD_TYPE,
     PARCEL_NAME,
+    POSTCODE,
     TRACKING_NUMBER,
     TYPE,
 )
@@ -36,6 +38,8 @@ ADD_PARCEL_SCHEMA = vol.Schema(
         vol.Optional(COURIER): cv.string,
         vol.Required("send_push_confirmation", default=False): cv.boolean,
         vol.Optional(LANGUAGE, default=DEFAULT_LANGUAGE): cv.string,
+        vol.Optional(POSTCODE): cv.string,
+        vol.Optional(EMAIL): cv.string,
     }
 )
 
@@ -276,6 +280,11 @@ async def async_register_services(hass: HomeAssistant):
             "send_push_confirmation": send_push,
             "language": language,
         }
+        # Some carriers (e.g. DPD Germany, PostNL) need a postcode, some services
+        # (e.g. Apple Store) an email; the API records them only where required.
+        for key in (POSTCODE, EMAIL):
+            if call.data.get(key):
+                payload[key] = str(call.data[key]).strip()
         headers = {
             "api-key": api_key,
             "Content-Type": "application/json",

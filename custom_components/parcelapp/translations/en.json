@@ -47,6 +47,14 @@
                 "language": {
                     "name": "Language",
                     "description": "Language for delivery information (ISO 639-1 two-letter code, e.g., 'en', 'de', 'fr'). Availability depends on carrier. Defaults to English."
+                },
+                "postcode": {
+                    "name": "Postcode",
+                    "description": "Postcode of the delivery address. Required by some carriers (e.g. DPD Germany, PostNL); ignored by the others."
+                },
+                "email": {
+                    "name": "Email",
+                    "description": "Email associated with the order. Required by some services (e.g. Apple Store); ignored by the others."
                 }
             }
         },
