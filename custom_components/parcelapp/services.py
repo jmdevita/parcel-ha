@@ -172,6 +172,17 @@ def get_http_error_message(
     )
 
 
+async def _read_api_error(response) -> str | None:
+    """Return the API's `error_message` from an error response, if any."""
+    try:
+        body = await response.json(content_type=None)
+    except (ValueError, ClientResponseError):
+        return None
+    if isinstance(body, dict) and body.get("error_message"):
+        return str(body["error_message"])[:300]
+    return None
+
+
 def _resolve_courier(
     detector: CarrierDetector, tracking_number: str, courier: str | None
 ) -> tuple[str, dict | None]:
@@ -288,6 +299,22 @@ async def async_register_services(hass: HomeAssistant):
                 headers=headers,
                 json=payload,
             ) as response:
+                if response.status >= 400:
+                    # The API explains refusals (unknown format, daily limit, ...)
+                    # in `error_message`; pass that on instead of a bare status.
+                    api_error = await _read_api_error(response)
+                    if api_error:
+                        _LOGGER.error(
+                            "API rejected parcel %s (tracking: %s, carrier: %s): %s",
+                            parcel_name,
+                            tracking_number,
+                            courier,
+                            api_error,
+                        )
+                        raise HomeAssistantError(
+                            f"Failed to add parcel '{parcel_name}' (tracking: {tracking_number}). "
+                            f"The Parcel App API returned an error: {api_error}"
+                        )
                 response.raise_for_status()
                 result = await response.json()
 
