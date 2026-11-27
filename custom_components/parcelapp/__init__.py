@@ -81,19 +81,27 @@ async def cleanup_old_device(hass: HomeAssistant) -> None:
 
     Older versions of this integration registered a device using a malformed
     identifier -- a bare ``(DOMAIN,)`` tuple instead of the expected
-    ``(DOMAIN, <unique_id>)``. ``device_registry.async_get_device`` is
-    deprecated (scheduled for removal in HA Core 2027.8.0) because device
-    identifiers are no longer guaranteed unique across config entries, and it
-    cannot be used to look up the malformed single-element identifier anyway.
+    ``(DOMAIN, <unique_id>)``. That device cannot be looked up with
+    ``device_registry.async_get_device`` (deprecated, and it requires a
+    well-formed identifier pair), and using ``device_registry.devices`` as a
+    mapping is deprecated too (stops working in HA Core 2027.9.0).
 
-    Iterate the device registry and remove any device that still carries the
-    improper identifier.
+    Walk this integration's own config entries with the supported
+    ``async_entries_for_config_entry`` helper and remove any device that still
+    carries the improper identifier.
     """
     device_reg = dr.async_get(hass)
-    for device in list(device_reg.devices.values()):
-        if any(
-            len(identifier) == 1 and identifier[0] == DOMAIN
-            for identifier in device.identifiers
+    removed: set[str] = set()
+    for config_entry in hass.config_entries.async_entries(DOMAIN):
+        for device in dr.async_entries_for_config_entry(
+            device_reg, config_entry.entry_id
         ):
-            _LOGGER.debug("Removing improper device %s", device.name)
-            device_reg.async_remove_device(device.id)
+            if device.id in removed:
+                continue
+            if any(
+                len(identifier) == 1 and identifier[0] == DOMAIN
+                for identifier in device.identifiers
+            ):
+                _LOGGER.debug("Removing improper device %s", device.name)
+                device_reg.async_remove_device(device.id)
+                removed.add(device.id)
