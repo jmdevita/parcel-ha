@@ -21,7 +21,7 @@ from .const import (
     EMPTY_ATTRIBUTES,
 )
 from .coordinator import ParcelConfigEntry, ParcelUpdateCoordinator
-from .utils import dateparse
+from .utils import dateparse, normalize_event_date
 
 PLATFORMS = [Platform.SENSOR]
 _LOGGER = logging.getLogger(__name__)
@@ -41,6 +41,7 @@ async def async_setup_entry(
             ActiveShipment(coordinator),
             CollectionShipment(coordinator),
             RawShipmentData(coordinator),
+            NormalizedShipmentData(coordinator),
         ],
     )
 
@@ -627,6 +628,64 @@ class RawShipmentData(CoordinatorEntity, RestoreEntity, SensorEntity):
             self._hass_custom_attributes = {
                 "success": parcel_api_data["success"],
                 "deliveries": parcel_api_data["deliveries"],
+                "carrier_codes_updated": parcel_api_data["carrier_codes_updated"],
+                "utc_timestamp": parcel_api_data["utc_timestamp"],
+            }
+
+        self.async_write_ha_state()
+
+
+def normalize_deliveries(deliveries):
+    """Return a copy of the deliveries with each event date in ISO 8601.
+
+    The carrier's original string is kept in ``date_raw``. Events whose date
+    cannot be read get ``date`` set to None.
+    """
+    if not isinstance(deliveries, list):
+        return deliveries
+    normalized = []
+    for delivery in deliveries:
+        if not isinstance(delivery, dict):
+            normalized.append(delivery)
+            continue
+        delivery = dict(delivery)
+        events = delivery.get("events")
+        if isinstance(events, list):
+            delivery["events"] = [
+                {
+                    **event,
+                    "date": normalize_event_date(event.get("date")),
+                    "date_raw": event.get("date"),
+                }
+                if isinstance(event, dict)
+                else event
+                for event in events
+            ]
+        normalized.append(delivery)
+    return normalized
+
+
+class NormalizedShipmentData(RawShipmentData):
+    """Raw API data with carrier event dates converted to ISO 8601."""
+
+    def __init__(self, coordinator: ParcelUpdateCoordinator) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._attr_name = "Parcel Normalized Shipment Data"
+        self._attr_unique_id = (
+            f"{coordinator.config_entry.entry_id}_normalized_shipment_data"
+        )
+        self._globalid = "Parcel_Normalized_Shipment_Data"
+
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        parcel_api_data = self.coordinator.data
+
+        if parcel_api_data:
+            self._attr_state = parcel_api_data["utc_timestamp"]
+            self._hass_custom_attributes = {
+                "success": parcel_api_data["success"],
+                "deliveries": normalize_deliveries(parcel_api_data["deliveries"]),
                 "carrier_codes_updated": parcel_api_data["carrier_codes_updated"],
                 "utc_timestamp": parcel_api_data["utc_timestamp"],
             }

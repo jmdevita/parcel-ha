@@ -119,6 +119,22 @@ Delivery Status Codes:
 
 The raw data sensor is disabled by default and has to be enabled. To do so, in the integration, click on the "Parcel Raw Shipment Data" entity, click on settings, toggle the "Enabled" setting to "on", click "Update".
 
+### Normalized Data Sensor
+Carriers report event dates in their own formats (`Tuesday, May 13 1:31 PM`, `May 13, 2025 13:31`, `13.05.2025 13:31`, ...), which makes the raw data hard to sort or compare in templates. The "Parcel Normalized Shipment Data" sensor has the same attributes as the raw data sensor, except that each event's `date` is converted to ISO 8601:
+
+-   `date`: `2025-05-13T13:31:00` when the carrier gives a time, with an offset (`2025-05-13T13:31:00-05:00`) when it names a timezone, `2025-05-13` when it gives only a day, or `null` when the value can't be read as a date (including when it names a timezone the integration doesn't recognize). Times without a timezone are the carrier's local time, as reported.
+-   `date_raw`: the carrier's original string, unchanged.
+
+When the carrier leaves out the year, the most recent past date is used. When a date could be read day-first or month-first (`04.06.2025`), the reading that is not in the future and is closest to now is used.
+
+Like the raw data sensor, it is disabled by default. Enable the "Parcel Normalized Shipment Data" entity the same way. Example template that lists the latest event time for each delivery:
+
+```jinja
+{% for d in state_attr('sensor.parcel_app_parcel_normalized_shipment_data', 'deliveries') %}
+{{ d.description }}: {{ d.events[0].date if d.events and d.events[0].date else 'unknown' }}
+{% endfor %}
+```
+
 ## Custom Button Card
 
 If you are familiar with custom button card, one way to use the active_parcel_shipment sensor is with the following button card template:
