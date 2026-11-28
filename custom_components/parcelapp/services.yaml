@@ -36,6 +36,21 @@ add_parcel:
       default: "en"
       selector:
         text:
+    postcode:
+      name: "Postcode"
+      description: "Postcode of the delivery address. Required by some carriers (e.g. DPD Germany, PostNL); ignored by the others."
+      example: "10115"
+      required: false
+      selector:
+        text:
+    email:
+      name: "Email"
+      description: "Email associated with the order. Required by some services (e.g. Apple Store); ignored by the others."
+      example: "me@example.com"
+      required: false
+      selector:
+        text:
+          type: email
     send_push_confirmation:
       name: "Send Push Notification"
       description: "Send a push notification when the parcel is added"
